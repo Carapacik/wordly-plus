@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1035703108304",
+    "project_id": "wordle-60cbd",
+    "storage_bucket": "wordle-60cbd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1035703108304:android:64b149a8027c4821cd14d5",
+        "android_client_info": {
+          "package_name": "com.carapacik.wordle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1035703108304-57gghed30can3uer4kmek01g42o154lo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.carapacik.wordle",
+            "certificate_hash": "6b3cef85c8363927ad3c7f20d09b7a231c3ae927"
+          }
+        },
+        {
+          "client_id": "1035703108304-kjdivcrvk5er58lh0p35fb2jvs1oll90.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0cydJIZbrrRajLhGqxXQb1VgswbFwZVY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1035703108304-kjdivcrvk5er58lh0p35fb2jvs1oll90.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,1 @@
+enum FlushBarTypes { notCorrectLength, notFound }

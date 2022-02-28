@@ -1,0 +1,53 @@
+name: wordle
+description: Wordle
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ">=2.16.0 <3.0.0"
+
+dependencies:
+  another_flushbar: ^1.10.28
+  auth_repository:
+    path: packages/auth_repository
+  bloc: ^8.0.3
+  cupertino_icons: ^1.0.4
+  equatable: ^2.0.3
+  firebase_analytics: ^9.1.2
+  firebase_auth: ^3.3.11
+  firebase_core: ^1.13.1
+  fluent_ui: ^3.9.1
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^8.0.1
+  flutter_countdown_timer: ^4.1.0
+  flutter_localizations:
+    sdk: flutter
+  flutter_svg: ^1.0.3
+  form_inputs:
+    path: packages/form_inputs
+  formz: ^0.4.1
+  freezed_annotation: ^1.1.0
+  get_it: ^7.2.0
+  google_fonts: ^2.3.1
+  isar: ^2.2.1
+  json_annotation: ^4.4.0
+  r_resources: ^1.0.1
+  share_plus: ^4.0.3
+  shared_preferences: ^2.0.13
+  url_strategy: ^0.2.0
+
+dev_dependencies:
+  build_runner: ^2.1.8
+  flutter_launcher_icons_maker: ^0.10.2
+  flutter_test:
+    sdk: flutter
+  freezed: ^1.1.1
+  json_serializable: ^6.1.5
+  lint: ^1.8.2
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/svg/
+    - assets/strings/

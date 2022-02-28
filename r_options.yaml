@@ -1,0 +1,7 @@
+path: 'lib/resources'
+
+generate_strings: true
+
+supported_locales:
+  - en
+  - ru
