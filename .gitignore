@@ -8,6 +8,7 @@
 .buildlog/
 .history
 .svn/
+migrate_working_dir/
 
 # IntelliJ related
 *.iml
@@ -48,4 +49,4 @@ app.*.map.json
 # Generated files
 *.g.*
 *.freezed.*
-lib/resources/r.dart
+**/r.dart

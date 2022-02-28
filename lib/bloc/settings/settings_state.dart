@@ -1,29 +1,50 @@
 part of 'settings_cubit.dart';
 
-class SettingsState extends Equatable {
+abstract class SettingsState extends Equatable {
   const SettingsState({
-    required this.language,
-    required this.isDarkThemeOn,
+    required this.dictionaryLanguage,
+    required this.localeLanguage,
+    required this.isDark,
     required this.isHighContrast,
   });
 
-  // TODO: replace with freezed
-  final String language;
-  final bool isDarkThemeOn;
+  final DictionaryLanguages dictionaryLanguage;
+  final LocaleLanguages localeLanguage;
+  final bool isDark;
   final bool isHighContrast;
 
-  @override
-  List<Object?> get props => [isDarkThemeOn, isHighContrast, language];
-
   SettingsState copyWith({
-    bool? isDarkThemeOn,
+    DictionaryLanguages? dictionaryLanguage,
+    LocaleLanguages? localeLanguage,
+    bool? isDark,
     bool? isHighContrast,
-    String? language,
-  }) {
-    return SettingsState(
-      isDarkThemeOn: isDarkThemeOn ?? this.isDarkThemeOn,
-      isHighContrast: isHighContrast ?? this.isHighContrast,
-      language: language ?? this.language,
-    );
-  }
+  }) =>
+      SettingsUpdate(
+        dictionaryLanguage: dictionaryLanguage ?? this.dictionaryLanguage,
+        localeLanguage: localeLanguage ?? this.localeLanguage,
+        isDark: isDark ?? this.isDark,
+        isHighContrast: isHighContrast ?? this.isHighContrast,
+      );
+
+  @override
+  List<Object> get props =>
+      [dictionaryLanguage, localeLanguage, isDark, isHighContrast];
+}
+
+class SettingsInitial extends SettingsState {
+  const SettingsInitial({
+    required super.dictionaryLanguage,
+    required super.localeLanguage,
+    required super.isDark,
+    required super.isHighContrast,
+  });
+}
+
+class SettingsUpdate extends SettingsState {
+  const SettingsUpdate({
+    required super.dictionaryLanguage,
+    required super.localeLanguage,
+    required super.isDark,
+    required super.isHighContrast,
+  });
 }

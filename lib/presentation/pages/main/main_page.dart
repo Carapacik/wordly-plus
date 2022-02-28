@@ -1,112 +1,138 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wordle/bloc/main/main_cubit.dart';
-import 'package:wordle/data/dictionary_data.dart';
-import 'package:wordle/data/models/flushbar_types.dart';
-import 'package:wordle/presentation/pages/main/widgets/keyboard_en.dart';
-import 'package:wordle/presentation/pages/main/widgets/keyboard_ru.dart';
-import 'package:wordle/presentation/pages/main/widgets/word_grid.dart';
-import 'package:wordle/presentation/widgets/adaptive_scaffold.dart';
-import 'package:wordle/presentation/widgets/dialogs/top_flush_bar.dart';
-import 'package:wordle/resources/r.dart';
-import 'package:wordle/utils/utils.dart';
+import 'package:get_it/get_it.dart';
+import 'package:wordly/bloc/main/main_cubit.dart';
+import 'package:wordly/bloc/settings/settings_cubit.dart';
+import 'package:wordly/data/models/flushbar_types.dart';
+import 'package:wordly/domain/level_repository.dart';
+import 'package:wordly/presentation/pages/levels/levels_page.dart';
+import 'package:wordly/presentation/pages/main/widgets/keyboard_by_language.dart';
+import 'package:wordly/presentation/pages/main/widgets/word_grid.dart';
+import 'package:wordly/presentation/pages/statistic/statistic_page.dart';
+import 'package:wordly/presentation/widgets/widgets.dart';
+import 'package:wordly/utils/utils.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({Key? key}) : super(key: key);
+  const MainPage({super.key});
 
   @override
-  _MainPageState createState() => _MainPageState();
+  State<MainPage> createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {
+  late final FocusNode _focusNode;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      showDialogIfNeed(context);
+    _focusNode = FocusNode();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkResultDialog(context);
     });
   }
 
   @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final _dictionary = DictionaryData.getInstance();
-    return BlocProvider<MainCubit>(
-      create: (BuildContext context) =>
-          MainCubit(_dictionary.dictionaryLanguage),
-      child: AdaptiveScaffold(
-        child: Center(
+    final levelRepository = GetIt.I<LevelRepository>();
+    return BlocBuilder<SettingsCubit, SettingsState>(
+      builder: (context, state) {
+        final mainCubit = context.read<MainCubit>();
+        return RawKeyboardListener(
+          autofocus: true,
+          focusNode: _focusNode,
+          onKey: (event) {
+            if (event is RawKeyDownEvent) {
+              mainCubit.keyDown(event, state.dictionaryLanguage);
+              return;
+            }
+          },
           child: BlocConsumer<MainCubit, MainState>(
-            listener: (context, state) {
+            listener: (context, state) async {
               if (state is TopMessageState) {
                 switch (state.type) {
-                  case FlushBarTypes.notFound:
-                    showTopFlushBar(
+                  case SnackbarType.notFound:
+                    await showSnackBar(
                       context,
                       message: R.stringsOf(context).word_not_found,
                     );
                     break;
-                  case FlushBarTypes.notCorrectLength:
-                    showTopFlushBar(
+                  case SnackbarType.notCorrectLength:
+                    await showSnackBar(
                       context,
                       message: R.stringsOf(context).word_too_short,
                     );
                     break;
                 }
               } else if (state is WinGameState) {
-                showDialogIfNeed(context, isWin: true);
+                await checkResultDialog(context, isWin: true);
               } else if (state is LoseGameState) {
-                showDialogIfNeed(context, isWin: false);
+                await checkResultDialog(context, isWin: false);
               }
             },
-            buildWhen: (_, currState) => currState is ChangeDictionaryState,
+            buildWhen: (_, currentState) =>
+                currentState is MainInitial || currentState is GridUpdateState,
             builder: (context, state) {
-              return ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 500),
-                child: FutureBuilder(
-                  future: _dictionary.getBoard(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return Column(
-                        key: UniqueKey(),
-                        children: [
-                          const SizedBox(height: 16),
-                          const WordGrid(),
-                          const Spacer(),
-                          const SizedBox(height: 16),
-                          BlocBuilder<MainCubit, MainState>(
-                            buildWhen: (previous, current) =>
-                                current is ChangeDictionaryState,
-                            builder: (context, state) => _getKeyboardByLanguage(
-                              state is! ChangeDictionaryState
-                                  ? DictionaryData.getInstance()
-                                      .dictionaryLanguage
-                                  : state.dictionary,
+              final settingsCubit = context.read<SettingsCubit>();
+              return Scaffold(
+                drawer: const CustomDrawer(),
+                appBar: CustomAppBar(
+                  title: levelRepository.isLevelMode
+                      ? R.stringsOf(context).level_number(
+                            number: levelRepository.levelData.lastLevel,
+                          )
+                      : R.stringsOf(context).wordle.toUpperCase(),
+                  actions: [
+                    if (levelRepository.isLevelMode)
+                      IconButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (context) => const LevelsPage(),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
-                      );
-                    } else {
-                      //TODO: probably will stay the same with splashscreen ending on future loaded
-                      return const SizedBox.shrink();
-                    }
-                  },
+                          );
+                        },
+                        tooltip: R.stringsOf(context).view_levels,
+                        icon: const Icon(Icons.apps),
+                      )
+                    else
+                      IconButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const StatisticPage(),
+                            ),
+                          );
+                        },
+                        tooltip: R.stringsOf(context).view_statistic,
+                        icon: const Icon(Icons.leaderboard),
+                      ),
+                  ],
+                ),
+                body: ConstraintScreen(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      const WordsGrid(),
+                      const Spacer(),
+                      KeyboardByLanguage(
+                        language: settingsCubit.state.dictionaryLanguage,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               );
             },
           ),
-        ),
-      ),
+        );
+      },
     );
-  }
-
-  Widget _getKeyboardByLanguage(final String language) {
-    switch (language) {
-      case "ru":
-        return const KeyboardRu();
-      case "en":
-      default:
-        return const KeyboardEn();
-    }
   }
 }

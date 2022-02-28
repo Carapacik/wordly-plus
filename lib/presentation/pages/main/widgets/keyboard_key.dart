@@ -1,32 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wordle/bloc/main/main_cubit.dart';
-import 'package:wordle/bloc/settings/settings_cubit.dart';
-import 'package:wordle/data/dictionary_data.dart';
-import 'package:wordle/data/models/keyboard_keys.dart';
-import 'package:wordle/data/models/letter_status.dart';
-import 'package:wordle/resources/app_text_styles.dart';
+import 'package:get_it/get_it.dart';
+import 'package:wordly/bloc/main/main_cubit.dart';
+import 'package:wordly/bloc/settings/settings_cubit.dart';
+import 'package:wordly/data/models/dictionary_languages.dart';
+import 'package:wordly/data/models/keyboard_keys.dart';
+import 'package:wordly/data/models/letter_status.dart';
+import 'package:wordly/data/repositories/dictionary_repository.dart';
+import 'package:wordly/resources/resources.dart';
 
 class KeyboardKey extends StatelessWidget {
   const KeyboardKey({
-    Key? key,
     required this.keyboardKey,
-    this.lang = 0,
-  }) : super(key: key);
+    this.lang = DictionaryLanguages.en,
+    super.key,
+  });
 
   final KeyboardKeys keyboardKey;
-
-  // lang 0  - en
-  // lang 1  - ru
-  final int lang;
+  final DictionaryLanguages lang;
 
   @override
   Widget build(BuildContext context) {
-    final mainCubit = BlocProvider.of<MainCubit>(context);
+    final mainCubit = context.read<MainCubit>();
     return BlocBuilder<MainCubit, MainState>(
       buildWhen: (_, currentState) {
+        if (currentState is GridUpdateState) {
+          return true;
+        }
+        if (currentState is MainInitial) {
+          return true;
+        }
         if (currentState is KeyboardKeyUpdateState) {
-          final KeyboardKeyUpdateState state = currentState;
+          final state = currentState;
           if (state.keyboardKey == keyboardKey) {
             return true;
           }
@@ -34,35 +39,41 @@ class KeyboardKey extends StatelessWidget {
         return false;
       },
       builder: (context, state) {
-        final dictionary = DictionaryData.getInstance();
-        final width = MediaQuery.of(context).size.width > 500
-            ? 500
-            : MediaQuery.of(context).size.width;
+        final dictionaryRepository = GetIt.I<DictionaryRepository>();
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 2),
-          width: _getWidthByLang(width),
+          width: keyboardKey.width(
+            language: lang,
+            screenWidth: MediaQuery.of(context).size.width,
+          ),
           child: AspectRatio(
-            aspectRatio: lang == 0 ? 2 / 3 : 2 / 3.5,
+            aspectRatio: lang.aspectRatio,
             child: InkWell(
-              onTap: () async {
+              onTap: () {
                 mainCubit.setLetter(keyboardKey);
-                await dictionary.saveBoardToPrefs();
               },
               child: BlocBuilder<SettingsCubit, SettingsState>(
                 buildWhen: (previous, current) =>
                     previous.isHighContrast != current.isHighContrast,
                 builder: (context, state) {
+                  final keyStatus = dictionaryRepository
+                      .getKeyStatus(keyboardKey.fromDictionaryLang(lang));
                   return Container(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: dictionary
-                          .getKeyStatus(keyboardKey.name(lang: lang))
-                          .color(context, highContrast: state.isHighContrast),
+                      color: keyStatus.color(
+                        context,
+                        highContrast: state.isHighContrast,
+                      ),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      keyboardKey.name(lang: lang)?.toUpperCase() ?? "",
-                      style: AppTextStyles.n14,
+                      keyboardKey.fromDictionaryLang(lang)?.toUpperCase() ?? '',
+                      style: AppTypography.r14.copyWith(
+                        color: keyStatus == LetterStatus.wrongSpot
+                            ? Colors.black
+                            : null,
+                      ),
                     ),
                   );
                 },
@@ -73,58 +84,44 @@ class KeyboardKey extends StatelessWidget {
       },
     );
   }
-
-  double _getWidthByLang(final num width) {
-    switch (lang) {
-      case 0:
-        return width * 0.075;
-      case 1:
-        return width * 0.067;
-      default:
-        return 0;
-    }
-  }
 }
 
 class EnterKeyboardKey extends StatelessWidget {
-  const EnterKeyboardKey({
-    Key? key,
-    this.lang = 0,
-  }) : super(key: key);
+  const EnterKeyboardKey({this.lang = DictionaryLanguages.en, super.key});
 
-  final int lang;
+  final DictionaryLanguages lang;
 
   @override
   Widget build(BuildContext context) {
-    final mainCubit = BlocProvider.of<MainCubit>(context);
-    final dictionary = DictionaryData.getInstance();
-    final width = MediaQuery.of(context).size.width > 500
-        ? 500
-        : MediaQuery.of(context).size.width;
+    final dictionaryRepository = GetIt.I<DictionaryRepository>();
+    final mainCubit = context.read<MainCubit>();
     return Container(
       margin: const EdgeInsets.only(right: 2),
-      height: _getHeightByLang(width),
+      height: KeyboardKeys.enter.width(
+        language: lang,
+        screenWidth: MediaQuery.of(context).size.width,
+      ),
       child: InkWell(
-        onTap: () async {
-          if (mainCubit.submitWord()) {
-            dictionary.getAllLettersInList().asMap().map(
-              (index, e) {
+        onTap: () {
+          final wordComplete = mainCubit.completeWord();
+          if (wordComplete) {
+            dictionaryRepository.getAllLettersInList().map(
+              (index, value) {
                 final key = KeyboardKeys.values.firstWhere(
-                  (element) => element.name(lang: lang) == e,
+                  (element) => element.fromDictionaryLang(lang) == value,
                 );
-                if (dictionary.secretWord[index] == e) {
+                if (dictionaryRepository.secretWord[index] == value) {
                   mainCubit.updateKey(key, LetterStatus.correctSpot);
-                  return MapEntry(index, e);
+                  return MapEntry(index, value);
                 }
-                if (dictionary.secretWord.contains(e)) {
+                if (dictionaryRepository.secretWord.contains(value)) {
                   mainCubit.updateKey(key, LetterStatus.wrongSpot);
-                  return MapEntry(index, e);
+                  return MapEntry(index, value);
                 }
                 mainCubit.updateKey(key, LetterStatus.notInWords);
-                return MapEntry(index, e);
+                return MapEntry(index, value);
               },
             );
-            await dictionary.saveWordIndexToPrefs();
           }
         },
         child: Container(
@@ -135,47 +132,39 @@ class EnterKeyboardKey extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
-            KeyboardKeys.enter.name(lang: lang)!.toUpperCase(),
-            style: AppTextStyles.n14,
+            KeyboardKeys.enter.fromDictionaryLang(lang)!.toUpperCase(),
+            style: AppTypography.r14,
           ),
         ),
       ),
     );
   }
-
-  double _getHeightByLang(final num width) {
-    switch (lang) {
-      case 0:
-        return width * 0.075 / 2 * 3;
-      case 1:
-        return width * 0.067 / 2 * 3.5;
-      default:
-        return 0;
-    }
-  }
 }
 
 class DeleteKeyboardKey extends StatelessWidget {
-  const DeleteKeyboardKey({Key? key, this.lang = 0}) : super(key: key);
+  const DeleteKeyboardKey({
+    this.lang = DictionaryLanguages.en,
+    super.key,
+  });
 
-  final int lang;
+  final DictionaryLanguages lang;
 
   @override
   Widget build(BuildContext context) {
-    final dictionary = DictionaryData.getInstance();
-    final mainCubit = BlocProvider.of<MainCubit>(context);
-    final width = MediaQuery.of(context).size.width > 500
-        ? 500
-        : MediaQuery.of(context).size.width;
+    final mainCubit = context.read<MainCubit>();
     return Container(
       margin: const EdgeInsets.only(left: 2),
-      width: _getWidthByLang(width),
-      height: _getWidthByLang(width),
+      width: KeyboardKeys.delete.width(
+        language: lang,
+        screenWidth: MediaQuery.of(context).size.width,
+      ),
+      height: KeyboardKeys.delete.width(
+        language: lang,
+        screenWidth: MediaQuery.of(context).size.width,
+      ),
       child: InkWell(
-        onTap: () async {
-          mainCubit.removeLetter();
-          await dictionary.saveBoardToPrefs();
-        },
+        onTap: mainCubit.removeLetter,
+        onLongPress: mainCubit.removeFullWord,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           alignment: Alignment.center,
@@ -187,16 +176,5 @@ class DeleteKeyboardKey extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  double _getWidthByLang(final num width) {
-    switch (lang) {
-      case 0:
-        return width * 0.075 / 2 * 3;
-      case 1:
-        return width * 0.067 / 2 * 3.5;
-      default:
-        return 0;
-    }
   }
 }

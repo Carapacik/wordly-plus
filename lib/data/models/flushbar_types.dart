@@ -1,1 +1,1 @@
-enum FlushBarTypes { notCorrectLength, notFound }
+enum SnackbarType { notCorrectLength, notFound }

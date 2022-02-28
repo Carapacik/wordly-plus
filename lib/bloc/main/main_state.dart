@@ -4,13 +4,9 @@ abstract class MainState extends Equatable {
   const MainState();
 }
 
-class ChangeDictionaryState extends MainState {
-  const ChangeDictionaryState(this.dictionary);
-
-  final String dictionary;
-
+class MainInitial extends MainState {
   @override
-  List<Object?> get props => [dictionary];
+  List<Object> get props => [];
 }
 
 class GridUpdateState extends MainState {
@@ -21,21 +17,21 @@ class GridUpdateState extends MainState {
 }
 
 class KeyboardKeyUpdateState extends MainState {
-  KeyboardKeyUpdateState(this.keyboardKey, this.letterType);
+  KeyboardKeyUpdateState(this.keyboardKey, this.letterStatus);
 
   final id = DateTime.now().microsecondsSinceEpoch;
   final KeyboardKeys keyboardKey;
-  final LetterStatus letterType;
+  final LetterStatus letterStatus;
 
   @override
-  List<Object?> get props => [id, keyboardKey, letterType];
+  List<Object?> get props => [id, keyboardKey, letterStatus];
 }
 
 class TopMessageState extends MainState {
   TopMessageState(this.type);
 
   final id = DateTime.now().microsecondsSinceEpoch;
-  final FlushBarTypes type;
+  final SnackbarType type;
 
   @override
   List<Object?> get props => [id, type];

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.carapacik" "\0"
-            VALUE "FileDescription", "wordle" "\0"
+            VALUE "CompanyName", "Carapacik" "\0"
+            VALUE "FileDescription", "WordlyPlus" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "wordle" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2022 com.carapacik. All rights reserved." "\0"
-            VALUE "OriginalFilename", "wordle.exe" "\0"
-            VALUE "ProductName", "wordle" "\0"
+            VALUE "InternalName", "WordlyPlus" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2022 Carapacik. All rights reserved." "\0"
+            VALUE "OriginalFilename", "WordlyPlus.exe" "\0"
+            VALUE "ProductName", "WordlyPlus" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

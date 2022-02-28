@@ -1,11 +1,11 @@
 {
-    "name": "Wordle",
-    "short_name": "wordle",
+    "name": "wordly",
+    "short_name": "wordly",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "Wordle",
+    "background_color": "#F4F7FB",
+    "theme_color": "#F4F7FB",
+    "description": "Guess the WORD in six tries",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
