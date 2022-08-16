@@ -1,85 +1,71 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:wordly/data/models.dart';
 import 'package:wordly/resources/resources.dart';
-import 'package:wordly/utils/utils.dart';
 
-class LanguageSelector extends StatelessWidget {
+class LanguageSelector<T extends GetNameEnumMixin> extends StatelessWidget {
   const LanguageSelector({
-    required this.text,
+    required this.title,
     required this.value,
-    required this.onChanged,
-    required this.isHighContrast,
-    Key? key,
-  }) : super(key: key);
+    required this.items,
+    required this.onTap,
+    super.key,
+  });
 
-  final String text;
-  final String value;
-  final bool isHighContrast;
-  final ValueChanged<String?> onChanged;
+  final String title;
+  final T value;
+  final List<T> items;
+  final ValueChanged<T?> onTap;
 
   @override
-  Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            text,
-            style: AppTypography.m14,
+  Widget build(BuildContext context) => MergeSemantics(
+        child: ListTileTheme.merge(
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            title: Text(title, style: context.theme.bl),
+            trailing: Text(value.getName(context), style: context.theme.bl),
+            onTap: () async {
+              final selected = await _selectLanguageBottomSheet(context);
+              if (selected == null) {
+                return;
+              }
+              onTap(selected);
+            },
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: isHighContrast
-                  ? AppColors.highContrastOrange
-                  : AppColors.green,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                alignment: Alignment.bottomCenter,
-                value: value,
-                borderRadius: BorderRadius.circular(10),
-                items: [
-                  DropdownMenuItem(
-                    value: 'ru',
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SvgPicture.asset(
-                          R.svg.russia,
-                          width: 30,
-                          height: 25,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'RU',
-                          style: AppTypography.m16,
-                        ),
-                      ],
-                    ),
+        ),
+      );
+
+  Future<T?> _selectLanguageBottomSheet(BuildContext context) async =>
+      showModalBottomSheet<T>(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(24),
+          ),
+        ),
+        constraints: const BoxConstraints(maxWidth: 400),
+        builder: (context) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              Text(context.r.select_language, style: context.theme.tm),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: items.length,
+                padding: EdgeInsets.zero,
+                itemBuilder: (context, index) => ListTile(
+                  title: Text(
+                    items[index].getName(context),
+                    style: context.theme.bl,
                   ),
-                  DropdownMenuItem(
-                    value: 'en',
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SvgPicture.asset(
-                          R.svg.us,
-                          width: 30,
-                          height: 25,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'EN',
-                          style: AppTypography.m16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                onChanged: onChanged,
+                  trailing:
+                      value == items[index] ? const Icon(Icons.check) : null,
+                  onTap: () => Navigator.of(context).pop(items[index]),
+                ),
               ),
-            ),
+              const SizedBox(height: 4),
+            ],
           ),
-        ],
+        ),
       );
 }

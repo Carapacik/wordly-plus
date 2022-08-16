@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_single_quotes, avoid_escaping_inner_quotes
+
 const Map<String, String> dictionaryEn = {
   "aback": "To be very shocked or surprised",
   "abaft": "At the back of or behind a ship or boat",
@@ -1065,7 +1067,7 @@ const Map<String, String> dictionaryEn = {
   "covet":
       "To want to have something very much, especially something that belongs to someone else",
   "covey": "A group of birds",
-  "cowed": "A large female farm animal kept to produce meat and milk",
+  "cowed": "Frightened by threats or violence into doing something",
   "cower": "To lower your head or body in fear, often while moving backwards",
   "coxae":
       "A Latin word meaning \"hip\" or \"hip joint\", used in medical names and descriptions",
@@ -5570,4 +5572,6 @@ const Map<String, String> dictionaryEn = {
       "An area, especially one that is different from the areas around it because it has different characteristics or is used for different purposes",
   "zumba":
       "A brand name for a type of exercise in which you do dance moves and other exercises to Latin American music, usually in a class with other people",
+  "tears":
+      "a drop of salty liquid that flows from the eye, as a result of strong emotion, especially unhappiness, or pain",
 };

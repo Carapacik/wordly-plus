@@ -1,5 +1,5 @@
 export 'colors.dart';
-export 'dictionary_en.dart';
-export 'dictionary_ru.dart';
-export 'themes.dart';
-export 'typography.dart';
+export 'dark_theme.dart';
+export 'l10n.dart';
+export 'light_theme.dart';
+export 'theme_extensions.dart';

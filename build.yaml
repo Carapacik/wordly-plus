@@ -1,0 +1,14 @@
+targets:
+  $default:
+    builders:
+      freezed:
+        options:
+          when:
+            when: false
+            when_or_null: false
+            maybe_when: false
+          copy_with: false
+      json_serializable:
+        options:
+          explicit_to_json: true
+          field_rename: none

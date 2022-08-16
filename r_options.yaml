@@ -1,5 +1,0 @@
-path: 'lib/utils'
-generate_strings: true
-supported_locales:
-  - en
-  - ru

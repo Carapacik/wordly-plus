@@ -1,15 +1,21 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:wordly/data/models/letter_status.dart';
 
-class LetterInfo extends Equatable {
-  const LetterInfo({
-    required this.letter,
-    required this.letterStatus,
-  });
+part 'letter_info.freezed.dart';
+part 'letter_info.g.dart';
 
-  final String letter;
-  final LetterStatus letterStatus;
+@Freezed()
+class LetterInfo with _$LetterInfo {
+  const factory LetterInfo({
+    required String letter,
+    @Default(LetterStatus.unknown) LetterStatus letterStatus,
+  }) = _LetterInfo;
 
-  @override
-  List<Object?> get props => [letter, letterStatus];
+  const factory LetterInfo.empty({
+    @Default('') String letter,
+    @Default(LetterStatus.unknown) LetterStatus letterStatus,
+  }) = _LetterInfoEmpty;
+
+  factory LetterInfo.fromJson(Map<String, dynamic> json) =>
+      _$LetterInfoFromJson(json);
 }

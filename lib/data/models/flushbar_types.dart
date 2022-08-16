@@ -1,1 +1,0 @@
-enum SnackbarType { notCorrectLength, notFound }

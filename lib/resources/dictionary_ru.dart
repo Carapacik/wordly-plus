@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_single_quotes, avoid_escaping_inner_quotes
+
 const Map<String, String> dictionaryRu = {
   "абака":
       "Многолетнее травянистое растение семейства банановых, растущее в тропиках; текстильный банан.",

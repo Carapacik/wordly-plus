@@ -45,11 +45,13 @@
 		<false/>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
-		<key>UIStatusBarHidden</key>
+		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>LSApplicationQueriesSchemes</key>
 		<array>
 			<string>https</string>
 		</array>
+		<key>UIStatusBarHidden</key>
+		<true/>
 	</dict>
 </plist>

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wordly/utils/utils.dart';
 
 class ConstraintScreen extends StatelessWidget {
   const ConstraintScreen({required this.child, super.key});
@@ -10,7 +11,7 @@ class ConstraintScreen extends StatelessWidget {
         child: Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints: const BoxConstraints(maxWidth: maxMobileWidth),
             child: child,
           ),
         ),

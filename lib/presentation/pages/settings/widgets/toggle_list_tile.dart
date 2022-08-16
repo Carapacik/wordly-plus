@@ -1,36 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wordly/bloc/theme/theme_bloc.dart';
 import 'package:wordly/resources/resources.dart';
 
 class ToggleListTile extends StatelessWidget {
   const ToggleListTile({
-    required this.text,
+    required this.title,
     required this.value,
-    required this.isHighContrast,
     required this.onChanged,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
-  final String text;
+  final String title;
   final bool value;
-  final bool isHighContrast;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
 
   @override
-  Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            text,
-            style: AppTypography.m14,
-          ),
-          Switch.adaptive(
+  Widget build(BuildContext context) {
+    final isHighContrast = context.read<ThemeBloc>().state.isHighContrast;
+    return MergeSemantics(
+      child: ListTileTheme.merge(
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          title: Text(title, style: context.theme.bl),
+          trailing: Switch(
             value: value,
             onChanged: onChanged,
-            activeTrackColor:
-                isHighContrast ? AppColors.highContrastOrange : AppColors.green,
-            inactiveTrackColor: AppColors.grey,
-            activeColor: Colors.white,
+            activeColor: isHighContrast
+                ? AppColors.orange
+                : context.dynamicColor(
+                    light: AppColors.greenLight,
+                    dark: AppColors.greenDark,
+                  ),
+            inactiveTrackColor: context.dynamicColor(
+              light: AppColors.greyDark,
+              dark: AppColors.greyLight,
+            ),
           ),
-        ],
-      );
+          selected: value,
+          enabled: onChanged != null,
+          onTap: onChanged != null ? () => onChanged!(!value) : null,
+        ),
+      ),
+    );
+  }
 }

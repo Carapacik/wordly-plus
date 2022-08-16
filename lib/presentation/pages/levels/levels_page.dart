@@ -1,53 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-import 'package:wordly/data/collections/board_data.dart';
-import 'package:wordly/domain/board_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wordly/bloc/levels/levels_bloc.dart';
 import 'package:wordly/presentation/widgets/widgets.dart';
 import 'package:wordly/resources/resources.dart';
-import 'package:wordly/utils/utils.dart';
 
 class LevelsPage extends StatelessWidget {
   const LevelsPage({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: CustomAppBar(title: R.stringsOf(context).levels),
-        body: ConstraintScreen(
-          child: FutureBuilder<List<BoardData>>(
-            future: GetIt.I<BoardRepository>().getAllData(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(
-                  child: CircularProgressIndicator.adaptive(
-                    strokeWidth: 3,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.grey),
-                  ),
-                );
-              }
-              final data = snapshot.requireData;
-              return GridView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: data.length + 1,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                ),
-                itemBuilder: (context, index) {
-                  final levelNumber = index == data.length
-                      ? data.isNotEmpty
-                          ? data[data.length - 1].levelNumber + 1
-                          : 1
-                      : data[index].levelNumber;
-                  return _GridItem(
-                    index: levelNumber,
-                    word: index == data.length ? '?' : data[index].secretWord,
-                    isComplete: index != data.length && data[index].isComplete,
-                    isWin: index == data.length ? null : data[index].isWin,
+  Widget build(BuildContext context) => Title(
+        color: AppColors.dark,
+        title: context.r.levels,
+        child: Scaffold(
+          appBar: CustomAppBar(title: context.r.levels),
+          body: ConstraintScreen(
+            child: BlocBuilder<LevelsBloc, LevelsState>(
+              builder: (context, state) => state.map(
+                initial: (_) =>
+                    const Center(child: CircularProgressIndicator()),
+                levelsLoaded: (s) {
+                  final levels = s.levels;
+                  if (levels.isEmpty) {
+                    return const HaveNotPlayed();
+                  }
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: levels.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                    ),
+                    itemBuilder: (context, index) => _GridItem(
+                      index: index + 1,
+                      word: levels[index].word,
+                      meaning: levels[index].meaning,
+                      isWin: levels[index].isWin,
+                    ),
                   );
                 },
-              );
-            },
+              ),
+            ),
           ),
         ),
       );
@@ -56,34 +50,53 @@ class LevelsPage extends StatelessWidget {
 class _GridItem extends StatelessWidget {
   const _GridItem({
     required this.word,
+    required this.meaning,
     required this.isWin,
-    required this.isComplete,
     required this.index,
   });
 
   final String word;
+  final String meaning;
   final bool? isWin;
-  final bool isComplete;
   final int index;
 
   @override
   Widget build(BuildContext context) => AspectRatio(
         aspectRatio: 1,
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: isWin == null
-                ? AppColors.grey
-                : isWin!
-                    ? AppColors.green
-                    : AppColors.red,
-          ),
-          child: Text(
-            isComplete ? '$index\n$word' : '$index\n?',
-            textAlign: TextAlign.center,
-            style: AppTypography.b30.copyWith(
-              color: Colors.white,
+        child: Material(
+          clipBehavior: Clip.hardEdge,
+          borderRadius: BorderRadius.circular(8),
+          color: isWin == null
+              ? context.dynamicColor(
+                  light: AppColors.greyLight,
+                  dark: AppColors.greyDark,
+                )
+              : isWin!
+                  ? context.dynamicColor(
+                      light: AppColors.greenLight,
+                      dark: AppColors.greenDark,
+                    )
+                  : context.dynamicColor(
+                      light: AppColors.redLight,
+                      dark: AppColors.redDark,
+                    ),
+          child: InkWell(
+            onTap: () {
+              if (isWin != null) {
+                showMeaningDialog(
+                  context,
+                  meaning: meaning,
+                  isWin: isWin!,
+                  word: word,
+                );
+              }
+            },
+            child: Center(
+              child: Text(
+                '$index\n$word',
+                textAlign: TextAlign.center,
+                style: context.theme.tl.copyWith(color: Colors.white),
+              ),
             ),
           ),
         ),
