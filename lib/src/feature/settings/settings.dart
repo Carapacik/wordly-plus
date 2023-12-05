@@ -1,0 +1,10 @@
+export 'src/application/settings_service.dart';
+export 'src/domain/model/general.dart';
+export 'src/domain/model/settings.dart';
+export 'src/domain/repositories/settings_repository.dart';
+export 'src/injection.dart';
+export 'src/widget/change_color_page.dart';
+export 'src/widget/list_item_selector.dart';
+export 'src/widget/setting_page.dart';
+export 'src/widget/settings_builder.dart';
+export 'src/widget/settings_scope.dart';

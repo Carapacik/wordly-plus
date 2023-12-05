@@ -1,12 +1,6 @@
 version: 2
 enable-beta-ecosystems: true
 updates:
-  - package-ecosystem: "pub"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    reviewers:
-      - "carapacik"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

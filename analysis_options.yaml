@@ -2,5 +2,12 @@ include: package:carapacik_lints/core.yaml
 
 analyzer:
   exclude:
-    - lib/resources/intl/**
-    - lib/resources/l10n.dart
+    - '**/generated/**'
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+formatter:
+  page_width: 120

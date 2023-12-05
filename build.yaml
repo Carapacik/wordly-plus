@@ -3,12 +3,8 @@ targets:
     builders:
       freezed:
         options:
+          copy_with: false
           when:
             when: false
-            when_or_null: false
             maybe_when: false
-          copy_with: false
-      json_serializable:
-        options:
-          explicit_to_json: true
-          field_rename: none
+            when_or_null: false
