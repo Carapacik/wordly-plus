@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' show max;
 
 import 'package:wordly/src/feature/statistic/data/datasources/statistic_datasource.dart';
 import 'package:wordly/src/feature/statistic/domain/model/game_statistic.dart';
@@ -10,8 +11,7 @@ abstract interface class IStatisticsRepository {
 }
 
 final class StatisticsRepository implements IStatisticsRepository {
-  const StatisticsRepository({required IStatisticDatasource statisticsDatasource})
-    : _statisticsDatasource = statisticsDatasource;
+  const StatisticsRepository({required this._statisticsDatasource});
 
   final IStatisticDatasource _statisticsDatasource;
 
@@ -21,11 +21,12 @@ final class StatisticsRepository implements IStatisticsRepository {
   @override
   Future<void> saveStatistic(String dictionary, {required bool isWin, required int attempt}) async {
     final GameStatistic previousStatistic = await _statisticsDatasource.read(dictionary);
+    final int newStreak = _calculateStreak(isWin: isWin, previous: previousStatistic.streak);
     final currentStatistic = GameStatistic(
       loses: _calculateLoses(isWin: isWin, previous: previousStatistic.loses),
       wins: _calculateWins(isWin: isWin, previous: previousStatistic.wins),
-      streak: _calculateStreak(isWin: isWin, previous: previousStatistic.streak),
-      maxStreak: _calculateMaxStreak(isWin: isWin, previous: previousStatistic.maxStreak),
+      streak: newStreak,
+      maxStreak: max(previousStatistic.maxStreak, newStreak),
       attempts: _calculateAttempts(attempt: isWin ? attempt - 1 : -1, previous: previousStatistic.attempts),
     );
     await _statisticsDatasource.save(dictionary, currentStatistic);
@@ -54,16 +55,6 @@ final class StatisticsRepository implements IStatisticsRepository {
   int _calculateStreak({required bool isWin, required int? previous}) {
     if (!isWin) {
       return 0;
-    }
-    if (previous == null) {
-      return 1;
-    }
-    return previous + 1;
-  }
-
-  int _calculateMaxStreak({required bool isWin, required int? previous}) {
-    if (!isWin) {
-      return previous ?? 0;
     }
     if (previous == null) {
       return 1;

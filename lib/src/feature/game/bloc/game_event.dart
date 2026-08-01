@@ -16,5 +16,7 @@ sealed class GameEvent with _$GameEvent {
 
   const factory GameEvent.enterPressed() = _GameEnterPressed;
 
+  const factory GameEvent.retryLevelPersistence() = _GameRetryLevelPersistence;
+
   const factory GameEvent.listenKeyEvent(KeyEvent keyEvent) = _GameListenKeyEvent;
 }

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' show Locale;
 
@@ -46,7 +45,6 @@ final class LevelDatasource implements ILevelDatasource {
           })
           .toList(growable: false);
     } on Object {
-      unawaited(sharedPreferencesColumnJson(dictionaryKey).remove());
       return null;
     }
   }

@@ -9,8 +9,11 @@ class GameStatistic {
     required this.streak,
     required this.maxStreak,
     required this.attempts,
+    this.version = currentVersion,
   });
 
+  static const int currentVersion = 2;
+  final int version;
   final int wins;
   final int loses;
   final int streak;
@@ -24,6 +27,7 @@ class GameStatistic {
       identical(this, other) ||
       other is GameStatistic &&
           runtimeType == other.runtimeType &&
+          version == other.version &&
           wins == other.wins &&
           loses == other.loses &&
           streak == other.streak &&
@@ -31,5 +35,6 @@ class GameStatistic {
           const DeepCollectionEquality().equals(attempts, other.attempts);
 
   @override
-  int get hashCode => Object.hash(wins, loses, streak, maxStreak, const DeepCollectionEquality().hash(attempts));
+  int get hashCode =>
+      Object.hash(version, wins, loses, streak, maxStreak, const DeepCollectionEquality().hash(attempts));
 }

@@ -137,13 +137,15 @@ class GameBody extends StatelessWidget {
     return SettingsBuilder(
       builder: (context, settings) => BlocListener<GameBloc, GameState>(
         listenWhen: (previous, current) =>
-            (previous.gameCompleted != current.gameCompleted &&
+            (!previous.gameCompleted &&
+                current.gameCompleted &&
                 previous.gameMode == current.gameMode &&
                 previous.dictionary == current.dictionary &&
                 current.isResult) ||
             current.isFailure,
         listener: (context, state) {
           if (state.isResult) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
             final GameBloc bloc = context.read<GameBloc>();
             unawaited(
               showGameResultDialog(
@@ -168,6 +170,20 @@ class GameBody extends StatelessWidget {
             return;
           }
           if (state.isFailure) {
+            if (state is GamePersistenceFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(context.l10n.progressSaveFailed),
+                  duration: const Duration(days: 1),
+                  behavior: SnackBarBehavior.floating,
+                  action: SnackBarAction(
+                    label: context.l10n.retry,
+                    onPressed: () => context.read<GameBloc>().add(const GameEvent.retryLevelPersistence()),
+                  ),
+                ),
+              );
+              return;
+            }
             WordError? error;
             if (state case final GameFailure e) {
               error = e.error;

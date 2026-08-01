@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' show pi;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wordly/src/feature/game/bloc/game_bloc.dart';
@@ -40,7 +43,7 @@ class WordsGrid extends StatelessWidget {
   }
 }
 
-class GridTile extends StatelessWidget {
+class GridTile extends StatefulWidget {
   const GridTile({required this.info, required this.position, required this.generalSettings, super.key});
 
   final LetterInfo info;
@@ -48,32 +51,75 @@ class GridTile extends StatelessWidget {
   final GeneralSettings generalSettings;
 
   @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      key: ValueKey<LetterStatus>(info.status),
+  State<GridTile> createState() => _GridTileState();
+}
+
+class _GridTileState extends State<GridTile> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 320),
+    value: 1,
+  );
+  Timer? _startTimer;
+  bool _isRevealing = false;
+
+  @override
+  void didUpdateWidget(covariant GridTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.info.status == LetterStatus.unknown && widget.info.status != LetterStatus.unknown) {
+      _startTimer?.cancel();
+      _isRevealing = true;
+      _controller.value = 0;
+      _startTimer = Timer(Duration(milliseconds: (widget.position % 5) * 65), _controller.forward);
+    }
+  }
+
+  @override
+  void dispose() {
+    _startTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _controller,
+    builder: (context, child) {
+      final double progress = _isRevealing ? _controller.value : 1;
+      return Transform(
+        key: ValueKey<String>('submitted-letter-animation-${widget.position}'),
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, 0.001)
+          ..rotateX((1 - progress) * pi / 2),
+        child: child,
+      );
+    },
+    child: AspectRatio(
+      key: ValueKey<LetterStatus>(widget.info.status),
       aspectRatio: 1,
       child: Container(
         constraints: const BoxConstraints(maxHeight: 60, maxWidth: 60),
         decoration: BoxDecoration(
-          color: info.status.cellColor(context, generalSettings),
+          color: widget.info.status.cellColor(context, widget.generalSettings),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: FittedBox(
-            child: info.letter.isEmpty
+            child: widget.info.letter.isEmpty
                 ? const SizedBox.shrink(key: ValueKey('empty'))
                 : Text(
-                    info.letter.toUpperCase(),
-                    key: ValueKey<String>(info.letter),
+                    widget.info.letter.toUpperCase(),
+                    key: ValueKey<String>(widget.info.letter),
                     style: TextStyle(
-                      color: info.status.textColor(context, generalSettings),
+                      color: widget.info.status.textColor(context, widget.generalSettings),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
 }

@@ -25,12 +25,10 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
   GameBloc({
     required Locale dictionary,
     required IGameRepository gameRepository,
-    required IStatisticsRepository statisticsRepository,
-    required ILevelRepository levelRepository,
+    required this._statisticsRepository,
+    required this._levelRepository,
     required GameResult? savedResult,
   }) : _gameRepository = gameRepository,
-       _statisticsRepository = statisticsRepository,
-       _levelRepository = levelRepository,
        super(
          _stateBySavedResult(savedResult, dictionary, GameMode.daily, gameRepository.generateSecretWord(dictionary)),
        ) {
@@ -41,10 +39,12 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
         final _GameResetBoard e => _resetBoard(e, emit),
         final _GameLetterPressed e => _letterPressed(e, emit),
         final _GameEnterPressed e => _enterPressed(e, emit),
+        final _GameRetryLevelPersistence e => _retryLevelPersistence(e, emit),
         final _GameDeletePressed e => _deletePressed(e, emit),
         final _GameDeleteLongPressed e => _deleteLongPressed(e, emit),
         final _GameListenKeyEvent e => _listenKeyEvent(e, emit),
       },
+      transformer: (events, mapper) => events.asyncExpand(mapper),
     );
   }
 
@@ -60,7 +60,7 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
     if (mode == GameMode.daily) {
       return _gameRepository.getDaily(dictionary, DateTime.now().toUtc());
     }
-    return _gameRepository.getLvl(dictionary);
+    return _levelRepository.getCurrentProgress(dictionary);
   }
 
   GameState _buildIdleState({
@@ -140,35 +140,82 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
     );
   }
 
-  void _saveLevelProgress({required List<LetterInfo> board}) {
-    unawaited(
-      _gameRepository.setLvlBoard(
-        state.dictionary,
-        GameResult(secretWord: state.secretWord, board: board, lvlNumber: state.lvlNumber),
-      ),
-    );
+  Future<void> _saveLevelProgress({required List<LetterInfo> board, required Emitter<GameState> emit}) async {
+    final progress = GameResult(secretWord: state.secretWord, board: board, lvlNumber: state.lvlNumber);
+    try {
+      await _levelRepository.saveCurrentProgress(state.dictionary, progress);
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(
+        _buildPersistenceFailureState(
+          operation: GamePersistenceOperation.saveLevelProgress,
+          pendingProgress: progress,
+          retryCount: 0,
+        ),
+      );
+    }
   }
 
-  void _completeLevel({required bool isWin}) {
+  Future<void> _completeLevel({
+    required bool isWin,
+    required List<LetterInfo> board,
+    required Map<String, LetterStatus> statuses,
+    required Emitter<GameState> emit,
+  }) async {
     final int currentLevel = state.lvlNumber ?? 1;
     final int nextLevel = currentLevel + 1;
-    unawaited(
-      _levelRepository.setLevels(
-        state.dictionary,
-        GameResult(secretWord: state.secretWord, lvlNumber: currentLevel, isWin: isWin, board: []),
-      ),
+    final completed = GameResult(secretWord: state.secretWord, lvlNumber: currentLevel, isWin: isWin, board: board);
+    final nextProgress = GameResult(
+      secretWord: _gameRepository.generateSecretWord(state.dictionary, levelNumber: nextLevel),
+      lvlNumber: nextLevel,
     );
-    unawaited(
-      _gameRepository.setLvlBoard(
-        state.dictionary,
-        GameResult(
-          secretWord: _gameRepository.generateSecretWord(state.dictionary, levelNumber: nextLevel),
-          lvlNumber: nextLevel,
-          board: [],
+    try {
+      await _levelRepository.completeLevel(
+        dictionary: state.dictionary,
+        completedLevel: completed,
+        nextLevel: nextProgress,
+      );
+      emit(
+        isWin ? _buildWinState(board: board, statuses: statuses) : _buildLossState(board: board, statuses: statuses),
+      );
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(
+        _buildPersistenceFailureState(
+          operation: GamePersistenceOperation.completeLevel,
+          pendingProgress: nextProgress,
+          completedLevel: completed,
+          pendingIsWin: isWin,
+          board: board,
+          statuses: statuses,
+          retryCount: 0,
         ),
-      ),
-    );
+      );
+    }
   }
+
+  GameState _buildPersistenceFailureState({
+    required GamePersistenceOperation operation,
+    required GameResult pendingProgress,
+    required int retryCount,
+    GameResult? completedLevel,
+    bool? pendingIsWin,
+    List<LetterInfo>? board,
+    Map<String, LetterStatus>? statuses,
+  }) => GameState.persistenceFailure(
+    dictionary: state.dictionary,
+    secretWord: state.secretWord,
+    gameMode: state.gameMode,
+    gameCompleted: false,
+    board: board ?? state.board,
+    statuses: statuses ?? state.statuses,
+    lvlNumber: state.lvlNumber,
+    operation: operation,
+    pendingProgress: pendingProgress,
+    completedLevel: completedLevel,
+    pendingIsWin: pendingIsWin,
+    retryCount: retryCount,
+  );
 
   void _emitFailureThenIdle(Emitter<GameState> emit, WordError error) {
     emit(_buildFailureState(error: error));
@@ -230,18 +277,22 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
     emit(newState);
   }
 
-  void _resetBoard(_GameResetBoard event, Emitter<GameState> emit) {
-    final GameResult? savedResult;
+  Future<void> _resetBoard(_GameResetBoard event, Emitter<GameState> emit) async {
+    late final GameResult savedResult;
     if (event.gameMode == GameMode.daily) {
       savedResult = GameResult(secretWord: _gameRepository.generateSecretWord(state.dictionary), board: []);
     } else {
-      final int nextLevel = (state.lvlNumber ?? 1) + 1;
-      savedResult = GameResult(
-        secretWord: _gameRepository.generateSecretWord(state.dictionary, levelNumber: nextLevel),
-        lvlNumber: nextLevel,
-        board: [],
-      );
-      unawaited(_gameRepository.setLvlBoard(state.dictionary, savedResult));
+      final GameResult? currentProgress = await _levelRepository.getCurrentProgress(state.dictionary);
+      if (currentProgress != null) {
+        savedResult = currentProgress;
+      } else {
+        final int nextLevel = (state.lvlNumber ?? 0) + 1;
+        savedResult = GameResult(
+          secretWord: _gameRepository.generateSecretWord(state.dictionary, levelNumber: nextLevel),
+          lvlNumber: nextLevel,
+        );
+        await _levelRepository.saveCurrentProgress(state.dictionary, savedResult);
+      }
     }
     final GameState newState = _stateBySavedResult(
       savedResult,
@@ -253,7 +304,7 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   void _letterPressed(_GameLetterPressed event, Emitter<GameState> emit) {
-    if (state.gameCompleted) {
+    if (state.isInputBlocked) {
       return;
     }
     if (state.board.length >= _maxLetters) {
@@ -268,7 +319,7 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   void _deletePressed(_GameDeletePressed event, Emitter<GameState> emit) {
-    if (state.gameCompleted) {
+    if (state.isInputBlocked) {
       return;
     }
     if (state.board.length <= state.currentWordIndex * _wordLength ||
@@ -279,7 +330,7 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   void _deleteLongPressed(_GameDeleteLongPressed event, Emitter<GameState> emit) {
-    if (state.gameCompleted) {
+    if (state.isInputBlocked) {
       return;
     }
     if (state.board.length <= state.currentWordIndex * _wordLength ||
@@ -290,8 +341,8 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
     emit(_buildIdleState(board: board..removeRange(state.currentWordIndex * _wordLength, board.length)));
   }
 
-  void _enterPressed(_GameEnterPressed event, Emitter<GameState> emit) {
-    if (state.gameCompleted) {
+  Future<void> _enterPressed(_GameEnterPressed event, Emitter<GameState> emit) async {
+    if (state.isInputBlocked) {
       return;
     }
     if (state.board.isEmpty || state.board.length % _wordLength != 0) {
@@ -315,12 +366,12 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
       for (final e in word) {
         newStatuses[e] = LetterStatus.correctSpot;
       }
-      emit(_buildWinState(board: newBoard, statuses: newStatuses));
       switch (state.gameMode) {
         case GameMode.daily:
+          emit(_buildWinState(board: newBoard, statuses: newStatuses));
           _saveDailyResult(board: newBoard, isWin: true);
         case GameMode.lvl:
-          _completeLevel(isWin: true);
+          await _completeLevel(isWin: true, board: newBoard, statuses: newStatuses, emit: emit);
       }
 
       return;
@@ -361,12 +412,12 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
       }
     }
     if (state.currentWordIndex >= _maxWords - 1) {
-      emit(_buildLossState(board: newBoard, statuses: newStatuses));
       switch (state.gameMode) {
         case GameMode.daily:
+          emit(_buildLossState(board: newBoard, statuses: newStatuses));
           _saveDailyResult(board: newBoard, isWin: false);
         case GameMode.lvl:
-          _completeLevel(isWin: false);
+          await _completeLevel(isWin: false, board: newBoard, statuses: newStatuses, emit: emit);
       }
     } else {
       emit(_buildIdleState(board: newBoard, statuses: newStatuses));
@@ -374,8 +425,79 @@ final class GameBloc extends Bloc<GameEvent, GameState> {
         case GameMode.daily:
           _saveDailyResult(board: newBoard);
         case GameMode.lvl:
-          _saveLevelProgress(board: newBoard);
+          await _saveLevelProgress(board: newBoard, emit: emit);
       }
+    }
+  }
+
+  Future<void> _retryLevelPersistence(_GameRetryLevelPersistence event, Emitter<GameState> emit) async {
+    final GameState current = state;
+    if (current is! GamePersistenceFailure) {
+      return;
+    }
+    try {
+      switch (current.operation) {
+        case GamePersistenceOperation.saveLevelProgress:
+          await _levelRepository.saveCurrentProgress(current.dictionary, current.pendingProgress);
+          emit(
+            GameState.idle(
+              dictionary: current.dictionary,
+              secretWord: current.secretWord,
+              gameMode: current.gameMode,
+              gameCompleted: false,
+              board: current.board,
+              statuses: current.statuses,
+              lvlNumber: current.lvlNumber,
+            ),
+          );
+        case GamePersistenceOperation.completeLevel:
+          final GameResult completed = current.completedLevel!;
+          final bool isWin = current.pendingIsWin!;
+          await _levelRepository.completeLevel(
+            dictionary: current.dictionary,
+            completedLevel: completed,
+            nextLevel: current.pendingProgress,
+          );
+          emit(
+            isWin
+                ? GameState.win(
+                    dictionary: current.dictionary,
+                    secretWord: current.secretWord,
+                    gameMode: current.gameMode,
+                    gameCompleted: true,
+                    board: current.board,
+                    statuses: current.statuses,
+                    lvlNumber: current.lvlNumber,
+                  )
+                : GameState.loss(
+                    dictionary: current.dictionary,
+                    secretWord: current.secretWord,
+                    gameMode: current.gameMode,
+                    gameCompleted: true,
+                    board: current.board,
+                    statuses: current.statuses,
+                    lvlNumber: current.lvlNumber,
+                  ),
+          );
+      }
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(
+        GameState.persistenceFailure(
+          dictionary: current.dictionary,
+          secretWord: current.secretWord,
+          gameMode: current.gameMode,
+          gameCompleted: current.gameCompleted,
+          board: current.board,
+          statuses: current.statuses,
+          lvlNumber: current.lvlNumber,
+          operation: current.operation,
+          pendingProgress: current.pendingProgress,
+          completedLevel: current.completedLevel,
+          pendingIsWin: current.pendingIsWin,
+          retryCount: current.retryCount + 1,
+        ),
+      );
     }
   }
 }
@@ -417,7 +539,10 @@ GameState _stateBySavedResult(GameResult? savedResult, Locale dictionary, GameMo
 Map<String, LetterStatus> _boardToStatuses(List<LetterInfo> board) {
   final statuses = <String, LetterStatus>{};
   for (final e in board) {
-    statuses[e.letter] = e.status;
+    final LetterStatus? previous = statuses[e.letter];
+    if (previous == null || previous < e.status) {
+      statuses[e.letter] = e.status;
+    }
   }
   return statuses;
 }

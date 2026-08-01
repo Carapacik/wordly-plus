@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:wordly/src/core/common/common.dart';
-import 'package:wordly/src/core/resources/resources.dart';
-import 'package:wordly/src/feature/game/domain/model/game_result.dart';
+import 'package:wordly/src/feature/game/domain/model/letter_info.dart';
+import 'package:wordly/src/feature/level/domain/model/level_result.dart';
 import 'package:wordly/src/feature/level/widget/level_dialog.dart';
+import 'package:wordly/src/feature/settings/settings.dart';
 import 'package:wordly/src/feature/shared/constraint_screen.dart';
 import 'package:wordly/src/feature/shared/not_played.dart';
 
@@ -16,7 +17,7 @@ class LevelPage extends StatefulWidget {
 }
 
 class _LevelPageState extends State<LevelPage> {
-  late final Future<List<GameResult>?> _getLevelsFuture = context.dependencies.levelRepository.getLevels(
+  late final Future<List<LevelResult>> _getLevelsFuture = context.dependencies.levelRepository.getResults(
     widget.dictionary,
   );
 
@@ -35,13 +36,13 @@ class _LevelPageState extends State<LevelPage> {
           child: FutureBuilder(
             future: _getLevelsFuture,
             builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.data == null) {
+              if (!snapshot.hasData || snapshot.requireData.isEmpty) {
                 return const HaveNotPlayed();
               }
-              final List<GameResult>? levels = snapshot.requireData;
+              final List<LevelResult> levels = snapshot.requireData;
               return GridView.builder(
                 padding: const EdgeInsets.all(20),
-                itemCount: levels!.length,
+                itemCount: levels.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   mainAxisSpacing: 10,
@@ -60,37 +61,47 @@ class _LevelPageState extends State<LevelPage> {
 class _LevelItem extends StatelessWidget {
   const _LevelItem({required this.level, required this.dictionary});
 
-  final GameResult level;
+  final LevelResult level;
   final Locale dictionary;
 
   @override
   Widget build(BuildContext context) {
+    final Settings settings = SettingsScope.of(context, listen: true).settingsService.current;
+    final LetterStatus status = level.isUnavailable
+        ? LetterStatus.unknown
+        : level.isWin!
+        ? LetterStatus.correctSpot
+        : LetterStatus.notInWord;
     return AspectRatio(
       aspectRatio: 1,
       child: Material(
         clipBehavior: Clip.hardEdge,
         borderRadius: BorderRadius.circular(8),
-        color: level.isWin == null
-            ? AppColors.grey
-            : level.isWin!
-            ? AppColors.green
-            : AppColors.red,
+        color: status.cellColor(context, settings.general),
         child: InkWell(
-          onTap: () async {
-            if (level.isWin != null) {
-              await showLevelDialog(
-                context,
-                word: level.secretWord,
-                isWin: level.isWin!,
-                meaning: context.dependencies.gameRepository.currentDictionary(dictionary)[level.secretWord] ?? '',
-              );
-            }
-          },
-          child: Center(
-            child: Text(
-              '${level.lvlNumber}\n${level.secretWord.toUpperCase()}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 24),
+          onTap: level.isUnavailable
+              ? null
+              : () async {
+                  await showLevelDialog(
+                    context,
+                    word: level.secretWord!,
+                    isWin: level.isWin!,
+                    meaning: context.dependencies.gameRepository.currentDictionary(dictionary)[level.secretWord] ?? '',
+                  );
+                },
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  level.isUnavailable
+                      ? '${level.levelNumber}\n${context.l10n.resultUnavailable}'
+                      : '${level.levelNumber}\n${level.secretWord!.toUpperCase()}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: status.textColor(context, settings.general), fontSize: 24),
+                ),
+              ),
             ),
           ),
         ),

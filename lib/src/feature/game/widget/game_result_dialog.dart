@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:share_plus/share_plus.dart';
 import 'package:wordly/src/core/common/common.dart';
-import 'package:wordly/src/core/resources/resources.dart';
 import 'package:wordly/src/feature/game/domain/model/game_mode.dart';
+import 'package:wordly/src/feature/game/domain/model/letter_info.dart';
 import 'package:wordly/src/feature/game/widget/countdown_timer.dart';
+import 'package:wordly/src/feature/settings/settings.dart';
 
 Future<void> showGameResultDialog(
   BuildContext context,
@@ -51,10 +52,14 @@ class DialogContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Settings settings = SettingsScope.of(context, listen: true).settingsService.current;
+    final LetterStatus resultStatus = isWin ? LetterStatus.correctSpot : LetterStatus.notInWord;
+    final Color backgroundColor = resultStatus.cellColor(context, settings.general);
+    final Color textColor = resultStatus.textColor(context, settings.general) ?? Colors.white;
     final double width = MediaQuery.sizeOf(context).width;
     final num padding = width > 350 ? (width - 350) / 2 : 8;
     return Dialog(
-      backgroundColor: isWin ? AppColors.green : AppColors.red,
+      backgroundColor: backgroundColor,
       insetAnimationDuration: const Duration(milliseconds: 800),
       insetPadding: EdgeInsets.symmetric(horizontal: padding.toDouble()),
       child: Padding(
@@ -66,29 +71,34 @@ class DialogContent extends StatelessWidget {
             children: [
               Text(
                 (isWin ? context.l10n.winMessage : context.l10n.loseMessage).toUpperCase(),
-                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
+                style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.w800),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               Text(
                 context.l10n.secretWord,
-                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500),
+                style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 12),
               SelectableText(
                 secretWord.toUpperCase(),
-                style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w500),
+                style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 12),
               Text(
                 meaning,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: textColor, fontSize: 14),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               switch (mode) {
-                GameMode.daily => _DailyContent(isWin: isWin, shareString: shareString, onEnd: onTimerEnd),
-                GameMode.lvl => _LevelContent(isWin: isWin, nextLevelPressed: nextLevelPressed),
+                GameMode.daily => _DailyContent(
+                  resultColor: backgroundColor,
+                  textColor: textColor,
+                  shareString: shareString,
+                  onEnd: onTimerEnd,
+                ),
+                GameMode.lvl => _LevelContent(resultColor: backgroundColor, nextLevelPressed: nextLevelPressed),
               },
             ],
           ),
@@ -99,9 +109,10 @@ class DialogContent extends StatelessWidget {
 }
 
 class _DailyContent extends StatelessWidget {
-  const _DailyContent({required this.isWin, required this.shareString, this.onEnd});
+  const _DailyContent({required this.resultColor, required this.textColor, required this.shareString, this.onEnd});
 
-  final bool isWin;
+  final Color resultColor;
+  final Color textColor;
   final VoidCallback? onEnd;
   final String? shareString;
 
@@ -121,11 +132,7 @@ class _DailyContent extends StatelessWidget {
             },
             child: Text(
               context.l10n.share,
-              style: TextStyle(
-                color: isWin ? AppColors.green : AppColors.red,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(color: resultColor, fontSize: 16, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
           ),
@@ -133,19 +140,19 @@ class _DailyContent extends StatelessWidget {
         ],
         Text(
           context.l10n.nextWord,
-          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+          style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 4),
-        CountdownTimer(onEnd: onEnd, timeRemaining: timeRemaining),
+        CountdownTimer(onEnd: onEnd, timeRemaining: timeRemaining, color: textColor),
       ],
     );
   }
 }
 
 class _LevelContent extends StatelessWidget {
-  const _LevelContent({required this.isWin, required this.nextLevelPressed});
+  const _LevelContent({required this.resultColor, required this.nextLevelPressed});
 
-  final bool isWin;
+  final Color resultColor;
   final VoidCallback nextLevelPressed;
 
   @override
@@ -155,7 +162,7 @@ class _LevelContent extends StatelessWidget {
       onPressed: nextLevelPressed,
       child: Text(
         context.l10n.nextLevel,
-        style: TextStyle(color: isWin ? AppColors.green : AppColors.red, fontSize: 16, fontWeight: FontWeight.w500),
+        style: TextStyle(color: resultColor, fontSize: 16, fontWeight: FontWeight.w500),
         textAlign: TextAlign.center,
       ),
     );

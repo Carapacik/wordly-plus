@@ -7,13 +7,12 @@ keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 plugins {
   id("com.android.application")
-  id("kotlin-android")
   id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
   namespace = "com.carapacik.wordly"
-  compileSdk = 36
+  compileSdk = 37
   ndkVersion = "29.0.14206865"
 
   compileOptions {
@@ -21,14 +20,10 @@ android {
     targetCompatibility = JavaVersion.VERSION_21
   }
 
-  kotlinOptions {
-    jvmTarget = JavaVersion.VERSION_21.toString()
-  }
-
   defaultConfig {
     applicationId = "com.carapacik.wordly"
-    minSdk = 29
-    targetSdk = 36
+    minSdk = 28
+    targetSdk = 37
     versionCode = flutter.versionCode
     versionName = flutter.versionName
   }
@@ -46,6 +41,12 @@ android {
     release {
       signingConfig = signingConfigs.getByName("release")
     }
+  }
+}
+
+kotlin {
+  compilerOptions {
+    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
   }
 }
 

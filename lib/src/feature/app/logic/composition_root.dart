@@ -47,9 +47,14 @@ Future<DependenciesContainer> createDependenciesContainer(ApplicationConfig conf
   final gameRepository = GameRepository(gameDataSource: GameDatasource(sharedPreferences: sharedPreferences));
   await gameRepository.init(settingsContainer.settingsService.current.dictionary);
 
-  final ILevelDatasource levelDataSource = LevelDatasource(sharedPreferences: sharedPreferences);
-  await levelDataSource.runMigration();
-  final levelRepository = LevelRepository(levelDataSource: levelDataSource);
+  final levelDatabase = AppDatabase.defaults();
+  final legacyLevelMigration = LegacyLevelMigration(
+    database: levelDatabase,
+    legacyStore: SharedPreferencesLegacyLevelStore(sharedPreferences),
+    logWarning: logger.warn,
+  );
+  await legacyLevelMigration.run();
+  final levelRepository = LevelRepository(database: levelDatabase);
 
   final IStatisticsRepository statisticsRepository = StatisticsRepository(
     statisticsDatasource: StatisticDatasource(sharedPreferences: sharedPreferences),

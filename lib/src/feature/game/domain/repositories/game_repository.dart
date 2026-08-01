@@ -24,14 +24,10 @@ abstract interface class IGameRepository {
   Future<GameResult?> getDaily(Locale dictionary, DateTime date);
 
   Future<void> setDailyBoard(Locale dictionary, DateTime date, GameResult savedResult);
-
-  Future<GameResult?> getLvl(Locale dictionary);
-
-  Future<void> setLvlBoard(Locale dictionary, GameResult savedResult);
 }
 
 final class GameRepository implements IGameRepository {
-  GameRepository({required IGameDatasource gameDataSource}) : _gameDataSource = gameDataSource;
+  GameRepository({required this._gameDataSource});
 
   final IGameDatasource _gameDataSource;
   late final Map<String, String> _ruDictionary;
@@ -76,13 +72,6 @@ final class GameRepository implements IGameRepository {
   @override
   Future<void> setDailyBoard(Locale dictionary, DateTime date, GameResult savedResult) =>
       _gameDataSource.setDailyBoard(dictionary.languageCode, DateFormat('dd-MM-yyyy').format(date), savedResult);
-
-  @override
-  Future<GameResult?> getLvl(Locale dictionary) => _gameDataSource.getLvl(dictionary.languageCode);
-
-  @override
-  Future<void> setLvlBoard(Locale dictionary, GameResult savedResult) =>
-      _gameDataSource.setLvlBoard(dictionary.languageCode, savedResult);
 
   @override
   Future<bool> get isFirstEnter => _gameDataSource.isFirstEnter.then((v) => v ?? true);

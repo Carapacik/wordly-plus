@@ -10,11 +10,7 @@ import 'package:wordly/src/feature/game/domain/model/game_result.dart';
 abstract interface class IGameDatasource {
   Future<GameResult?> getDaily(String dictionary, String date);
 
-  Future<GameResult?> getLvl(String dictionary);
-
   Future<void> setDailyBoard(String dictionary, String date, GameResult savedResult);
-
-  Future<void> setLvlBoard(String dictionary, GameResult savedResult);
 
   Future<bool?> get isFirstEnter;
 
@@ -52,28 +48,10 @@ final class GameDatasource implements IGameDatasource {
   }
 
   @override
-  Future<GameResult?> getLvl(String dictionary) async {
-    final Map<String, Object?>? rawResult = await _board(dictionary, GameMode.lvl.index).read();
-    if (rawResult == null) {
-      return null;
-    }
-    try {
-      final Map<String, Object?> normalized = _normalizeBoard(rawResult);
-      return gameResultCodec.decode(normalized);
-    } on Object {
-      return null;
-    }
-  }
-
-  @override
   Future<void> setDailyBoard(String dictionary, String date, GameResult savedResult) async => _board(
     dictionary,
     GameMode.daily.index,
   ).set(<String, Object?>{...gameResultCodec.encode(savedResult), 'date': date});
-
-  @override
-  Future<void> setLvlBoard(String dictionary, GameResult savedResult) async =>
-      _board(dictionary, GameMode.lvl.index).set(gameResultCodec.encode(savedResult));
 
   @override
   Future<bool?> get isFirstEnter => _isFirstEnter.read();

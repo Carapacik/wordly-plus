@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class CountdownTimer extends StatefulWidget {
-  const CountdownTimer({required this.timeRemaining, this.onEnd, super.key});
+  const CountdownTimer({required this.timeRemaining, this.onEnd, this.color = Colors.white, super.key});
 
   final Duration timeRemaining;
   final VoidCallback? onEnd;
+  final Color color;
 
   @override
   State<CountdownTimer> createState() => _CountdownTimerState();
@@ -45,7 +46,7 @@ class _CountdownTimerState extends State<CountdownTimer> {
   @override
   Widget build(BuildContext context) => Text(
     durationToStringDate(Duration(seconds: _timeRemaining)),
-    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+    style: TextStyle(color: widget.color, fontSize: 16, fontWeight: FontWeight.w500),
   );
 }
 

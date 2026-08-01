@@ -12,11 +12,19 @@ class StatisticCodec extends JsonMapCodec<GameStatistic> {
     final maxStreak = input['maxStreak']! as int;
     final List<int> attempts = (input['attempts']! as List<dynamic>).map((e) => e as int).toList();
 
-    return GameStatistic(wins: wins, loses: loses, streak: streak, maxStreak: maxStreak, attempts: attempts);
+    return GameStatistic(
+      version: input['version'] as int? ?? 1,
+      wins: wins,
+      loses: loses,
+      streak: streak,
+      maxStreak: maxStreak,
+      attempts: attempts,
+    );
   }
 
   @override
   Map<String, Object?> $encode(GameStatistic input) => {
+    'version': GameStatistic.currentVersion,
     'wins': input.wins,
     'loses': input.loses,
     'streak': input.streak,
