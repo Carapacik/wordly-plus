@@ -20,9 +20,11 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'en';
 
-  static String m0(attemptNumber) => "I couldn\'t guess the word in ${attemptNumber} attempts.";
+  static String m0(attemptNumber) =>
+      "I couldn\'t guess the word in ${attemptNumber} attempts.";
 
-  static String m1(attemptNumber) => "The word is solved in ${attemptNumber}/6 attempts.";
+  static String m1(attemptNumber) =>
+      "The word is solved in ${attemptNumber}/6 attempts.";
 
   static String m2(number) => "Level ${number}";
 
@@ -33,7 +35,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "appLanguage": MessageLookupByLibrary.simpleMessage("App language"),
     "appTitle": MessageLookupByLibrary.simpleMessage("Wordly Plus"),
     "casual": MessageLookupByLibrary.simpleMessage("Default"),
-    "checkResult": MessageLookupByLibrary.simpleMessage("You can check your result here:"),
+    "checkResult": MessageLookupByLibrary.simpleMessage(
+      "You can check your result here:",
+    ),
     "checkResultLose": m0,
     "checkResultWin": m1,
     "colorMode": MessageLookupByLibrary.simpleMessage("Color mode"),
@@ -44,22 +48,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "daily": MessageLookupByLibrary.simpleMessage("Daily"),
     "en": MessageLookupByLibrary.simpleMessage("English"),
     "examples": MessageLookupByLibrary.simpleMessage("Examples"),
-    "guessDistribution": MessageLookupByLibrary.simpleMessage("Guess distribution"),
+    "guessDistribution": MessageLookupByLibrary.simpleMessage(
+      "Guess distribution",
+    ),
     "highContrast": MessageLookupByLibrary.simpleMessage("High contrast"),
     "levelNumber": m2,
     "levels": MessageLookupByLibrary.simpleMessage("Levels"),
     "loseMessage": MessageLookupByLibrary.simpleMessage("You lost"),
     "maxStreak": MessageLookupByLibrary.simpleMessage("Max\nStreak"),
-    "newWordAvailableEachDay": MessageLookupByLibrary.simpleMessage("A new word will be available each day!"),
+    "newWordAvailableEachDay": MessageLookupByLibrary.simpleMessage(
+      "A new word will be available each day!",
+    ),
     "nextLevel": MessageLookupByLibrary.simpleMessage("Next level"),
     "nextWord": MessageLookupByLibrary.simpleMessage("Next word in"),
-    "notPlayed": MessageLookupByLibrary.simpleMessage("You haven\'t played a single game"),
+    "notPlayed": MessageLookupByLibrary.simpleMessage(
+      "You haven\'t played a single game",
+    ),
     "other": MessageLookupByLibrary.simpleMessage("Other"),
     "played": MessageLookupByLibrary.simpleMessage("Played"),
     "progressSaveFailed": MessageLookupByLibrary.simpleMessage(
       "Could not save progress. Your board is still available.",
     ),
-    "resultUnavailable": MessageLookupByLibrary.simpleMessage("Result unavailable"),
+    "resultUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Result unavailable",
+    ),
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "ru": MessageLookupByLibrary.simpleMessage("Russian"),
     "secretWord": MessageLookupByLibrary.simpleMessage("Secret word"),
@@ -81,17 +93,27 @@ class MessageLookup extends MessageLookupByLibrary {
     "tutorialDescription2": MessageLookupByLibrary.simpleMessage(
       "After each guess, the color of the tiles will change to show how close your guess was to the word.",
     ),
-    "tutorialNotInWordSpot": MessageLookupByLibrary.simpleMessage("The letter E is not in the word in any spot."),
-    "tutorialTitle": MessageLookupByLibrary.simpleMessage("Guess the WORD in 6 tries."),
+    "tutorialNotInWordSpot": MessageLookupByLibrary.simpleMessage(
+      "The letter E is not in the word in any spot.",
+    ),
+    "tutorialTitle": MessageLookupByLibrary.simpleMessage(
+      "Guess the WORD in 6 tries.",
+    ),
     "tutorialWordCorrectSpot": MessageLookupByLibrary.simpleMessage(
       "The letter P is in the word and in the correct spot.",
     ),
-    "tutorialWordWrongSpot": MessageLookupByLibrary.simpleMessage("The letter A is in the word but in the wrong spot."),
+    "tutorialWordWrongSpot": MessageLookupByLibrary.simpleMessage(
+      "The letter A is in the word but in the wrong spot.",
+    ),
     "viewLevels": MessageLookupByLibrary.simpleMessage("View levels"),
     "viewStatistic": MessageLookupByLibrary.simpleMessage("View statistic"),
     "winMessage": MessageLookupByLibrary.simpleMessage("You win!"),
     "winRate": MessageLookupByLibrary.simpleMessage("Win\nrate"),
-    "wordNotFound": MessageLookupByLibrary.simpleMessage("Word not found in dictionary"),
-    "wordTooShort": MessageLookupByLibrary.simpleMessage("Word is not correct length"),
+    "wordNotFound": MessageLookupByLibrary.simpleMessage(
+      "Word not found in dictionary",
+    ),
+    "wordTooShort": MessageLookupByLibrary.simpleMessage(
+      "Word is not correct length",
+    ),
   };
 }
