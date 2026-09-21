@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:math' show pi;
 
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wordly/src/feature/game/bloc/game_bloc.dart';
-import 'package:wordly/src/feature/game/domain/model/letter_info.dart';
-import 'package:wordly/src/feature/game/domain/model/word_error.dart';
-import 'package:wordly/src/feature/settings/settings.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:wordly/src/feature/game/logic/game_bloc.dart';
+import 'package:wordly/src/feature/game/model/letter_info.dart';
+import 'package:wordly/src/feature/game/model/word_error.dart';
+import 'package:wordly/src/feature/settings/model/general.dart';
+import 'package:wordly/src/feature/settings/widget/settings_builder.dart';
 
 class const WordsGrid({super.key}) extends StatefulWidget {
   @override
@@ -41,7 +42,7 @@ class _WordsGridState() extends State<WordsGrid> with SingleTickerProviderStateM
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 350),
         child: BlocListener<GameBloc, GameState>(
-          listenWhen: (_, current) => current is GameFailure && current.error == WordError.notFound,
+          listenWhen: (_, current) => current is GameFailure && current.error != WordError.tooShort,
           listener: (_, state) {
             setState(() => _shakingRow = state.currentWordIndex);
             _shakeController.forward(from: 0);
@@ -150,25 +151,27 @@ class _GridTileState() extends State<GridTile> with TickerProviderStateMixin {
       child: AspectRatio(
         key: ValueKey<LetterStatus>(widget.info.status),
         aspectRatio: 1,
-        child: Container(
+        child: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 60, maxWidth: 60),
-          decoration: BoxDecoration(
-            color: widget.info.status.cellColor(context, widget.generalSettings),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: FittedBox(
-              child: widget.info.letter.isEmpty
-                  ? const SizedBox.shrink(key: ValueKey('empty'))
-                  : Text(
-                      widget.info.letter.toUpperCase(),
-                      key: ValueKey<String>(widget.info.letter),
-                      style: TextStyle(
-                        color: widget.info.status.textColor(context, widget.generalSettings),
-                        fontWeight: FontWeight.w800,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: widget.info.status.cellColor(context, widget.generalSettings),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: FittedBox(
+                child: widget.info.letter.isEmpty
+                    ? const SizedBox.shrink(key: ValueKey('empty'))
+                    : Text(
+                        widget.info.letter.toUpperCase(),
+                        key: ValueKey<String>(widget.info.letter),
+                        style: TextStyle(
+                          color: widget.info.status.textColor(context, widget.generalSettings),
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                    ),
+              ),
             ),
           ),
         ),

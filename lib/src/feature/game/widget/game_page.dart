@@ -1,25 +1,28 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wordly/src/core/common/common.dart';
-import 'package:wordly/src/core/common/src/utils/share.dart';
-import 'package:wordly/src/feature/game/bloc/game_bloc.dart';
-import 'package:wordly/src/feature/game/domain/model/game_mode.dart';
-import 'package:wordly/src/feature/game/domain/model/letter_info.dart';
-import 'package:wordly/src/feature/game/domain/model/word_error.dart';
-import 'package:wordly/src/feature/game/domain/repositories/game_repository.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:wordly/src/feature/app/widget/app_drawer.dart';
+import 'package:wordly/src/feature/app/widget/dependencies_context.dart';
+import 'package:wordly/src/feature/game/data/game_repository.dart';
+import 'package:wordly/src/feature/game/logic/game_bloc.dart';
+import 'package:wordly/src/feature/game/model/game_mode.dart';
+import 'package:wordly/src/feature/game/model/letter_info.dart';
+import 'package:wordly/src/feature/game/model/word_error.dart';
 import 'package:wordly/src/feature/game/widget/game_result_dialog.dart';
 import 'package:wordly/src/feature/game/widget/keyboard_by_language.dart';
 import 'package:wordly/src/feature/game/widget/words_grid.dart';
-import 'package:wordly/src/feature/level/level.dart';
 import 'package:wordly/src/feature/level/widget/level_page.dart';
-import 'package:wordly/src/feature/settings/settings.dart';
-import 'package:wordly/src/feature/shared/drawer.dart';
-import 'package:wordly/src/feature/statistic/statistic.dart';
+import 'package:wordly/src/feature/settings/model/settings.dart';
+import 'package:wordly/src/feature/settings/widget/settings_builder.dart';
+import 'package:wordly/src/feature/settings/widget/settings_scope.dart';
 import 'package:wordly/src/feature/statistic/widget/statistic_page.dart';
 import 'package:wordly/src/feature/tutorial/widget/tutorial_page.dart';
+import 'package:wordly/src/localization/localization_context.dart';
+import 'package:wordly/src/ui_kit/theme_context.dart';
+import 'package:wordly/src/ui_kit/theme_extensions.dart';
+import 'package:wordly/src/utils/share.dart';
 
 class const GamePage({super.key}) extends StatefulWidget {
   @override
@@ -28,31 +31,53 @@ class const GamePage({super.key}) extends StatefulWidget {
 
 class _GamePageState() extends State<GamePage> {
   late final FocusNode _focusNode;
+  AppLifecycleListener? _lifecycle;
+  Timer? _dayTimer;
+
+  void _checkDaily() {
+    if (!mounted) {
+      return;
+    }
+    context.read<GameBloc>().add(const GameEvent.refreshDaily());
+    _dayTimer?.cancel();
+    final DateTime now = DateTime.now().toUtc();
+    _dayTimer = Timer(DateTime.utc(now.year, now.month, now.day + 1).difference(now), _checkDaily);
+  }
 
   @override
   void initState() {
     super.initState();
     _focusNode = FocusNode();
+    _lifecycle = AppLifecycleListener(onResume: _checkDaily);
+    _checkDaily();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final NavigatorState navigator = Navigator.of(context);
       final IGameRepository gameRepository = context.dependencies.gameRepository;
       final GameBloc bloc = context.read<GameBloc>();
       final GameState state = bloc.state;
       if (state.isResult) {
+        final String meaning = await gameRepository.definition(state.dictionary, state.secretWord);
+        if (!mounted || bloc.state != state) {
+          return;
+        }
         unawaited(
           showGameResultDialog(
             context,
             state.secretWord,
-            context.dependencies.gameRepository.currentDictionary(state.dictionary)[state.secretWord] ?? '',
+            meaning,
             state.gameMode,
             isWin: state.isWin,
-            onTimerEnd: GameMode.daily == state.gameMode ? () => bloc.add(GameEvent.resetBoard(state.gameMode)) : null,
+            onTimerEnd: GameMode.daily == state.gameMode ? () => bloc.add(const GameEvent.refreshDaily()) : null,
+            closeWhen: _dailyDialogChanges(bloc, state),
             shareString: shareString(context, state.buildResultString),
             nextLevelPressed: () => bloc.add(const GameEvent.resetBoard(GameMode.lvl)),
           ),
         );
       }
       final bool isFirstEnter = await gameRepository.isFirstEnter;
+      if (!mounted) {
+        return;
+      }
       if (isFirstEnter) {
         unawaited(gameRepository.setFirstEnter());
         navigator.push(MaterialPageRoute<void>(builder: (context) => const TutorialPage(), fullscreenDialog: true));
@@ -63,14 +88,16 @@ class _GamePageState() extends State<GamePage> {
 
   @override
   void dispose() {
+    _dayTimer?.cancel();
+    _lifecycle?.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final SettingsContainer settingsScope = SettingsScope.of(context, listen: true);
-    final Settings settings = settingsScope.settingsService.current;
+    final SettingsScopeState settingsScope = SettingsScope.of(context, listen: true);
+    final Settings settings = settingsScope.settings;
     return KeyboardListener(
       focusNode: _focusNode,
       autofocus: true,
@@ -118,7 +145,7 @@ class _GamePageState() extends State<GamePage> {
           ],
         ),
         drawer: const CustomDrawer(),
-        body: const GameBody(),
+        body: const Center(child: SizedBox(width: 840, child: GameBody())),
       ),
     );
   }
@@ -127,7 +154,6 @@ class _GamePageState() extends State<GamePage> {
 class const GameBody({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bool useSpacer = MediaQuery.sizeOf(context).height > 800;
     return SettingsBuilder(
       builder: (context, settings) => BlocListener<GameBloc, GameState>(
         listenWhen: (previous, current) =>
@@ -136,24 +162,31 @@ class const GameBody({super.key}) extends StatelessWidget {
                 previous.gameMode == current.gameMode &&
                 previous.dictionary == current.dictionary &&
                 current.isResult) ||
-            current.isFailure,
-        listener: (context, state) {
+            current.isFailure ||
+            (previous.isPersistenceFailure && !current.isPersistenceFailure),
+        listener: (context, state) async {
+          if (!state.isPersistenceFailure) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          }
           if (state.isResult) {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             final GameBloc bloc = context.read<GameBloc>();
+            final String meaning = await context.dependencies.gameRepository.definition(
+              state.dictionary,
+              state.secretWord,
+            );
+            if (!context.mounted || bloc.state != state) {
+              return;
+            }
             unawaited(
               showGameResultDialog(
                 context,
                 state.secretWord,
-                context.dependencies.gameRepository.currentDictionary(state.dictionary)[state.secretWord] ?? '',
+                meaning,
                 state.gameMode,
                 isWin: state.isWin,
-                onTimerEnd: GameMode.daily == state.gameMode
-                    ? () {
-                        Navigator.of(context).pop();
-                        bloc.add(GameEvent.resetBoard(state.gameMode));
-                      }
-                    : null,
+                onTimerEnd: GameMode.daily == state.gameMode ? () => bloc.add(const GameEvent.refreshDaily()) : null,
+                closeWhen: _dailyDialogChanges(bloc, state),
                 shareString: shareString(context, state.buildResultString),
                 nextLevelPressed: () {
                   Navigator.of(context).pop();
@@ -167,7 +200,13 @@ class const GameBody({super.key}) extends StatelessWidget {
             if (state is GamePersistenceFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(context.l10n.progressSaveFailed),
+                  content: Text(
+                    state.operation == GamePersistenceOperation.loadDaily ||
+                            state.operation == GamePersistenceOperation.loadNextLevel ||
+                            state.operation == GamePersistenceOperation.loadGame
+                        ? context.l10n.progressLoadFailed
+                        : context.l10n.progressSaveFailed,
+                  ),
                   duration: const Duration(days: 1),
                   behavior: SnackBarBehavior.floating,
                   action: SnackBarAction(
@@ -200,19 +239,45 @@ class const GameBody({super.key}) extends StatelessWidget {
             );
           }
         },
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              const Center(child: WordsGrid()),
-              if (useSpacer) const Spacer(),
-              const Center(child: KeyboardByLanguage()),
-              if (useSpacer) const Spacer(),
-              const SizedBox(height: 12),
-            ],
-          ),
-        ),
+        child: const SafeArea(child: _GameLayout()),
       ),
     );
   }
+}
+
+class const _GameLayout() extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final double boardWidth = ((constraints.maxHeight - 240) / 1.2).clamp(240, 366);
+      return SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Center(
+                  child: SizedBox(width: boardWidth, child: const WordsGrid()),
+                ),
+                const SizedBox(height: 8),
+                const Center(child: KeyboardByLanguage()),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Stream<void>? _dailyDialogChanges(GameBloc bloc, GameState shown) {
+  if (shown.gameMode != GameMode.daily) {
+    return null;
+  }
+  final DateTime date = bloc.dailyDate;
+  return bloc.stream
+      .where((next) => bloc.dailyDate != date || next.gameMode != shown.gameMode || next.dictionary != shown.dictionary)
+      .map((_) {});
 }

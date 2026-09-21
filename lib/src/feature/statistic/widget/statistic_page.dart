@@ -1,12 +1,17 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-import 'package:wordly/src/core/common/common.dart';
-import 'package:wordly/src/feature/game/domain/model/letter_info.dart';
-import 'package:wordly/src/feature/settings/settings.dart';
-import 'package:wordly/src/feature/shared/constraint_screen.dart';
-import 'package:wordly/src/feature/shared/not_played.dart';
-import 'package:wordly/src/feature/statistic/domain/model/game_statistic.dart';
+import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:wordly/src/feature/app/widget/dependencies_context.dart';
+import 'package:wordly/src/feature/game/model/letter_info.dart';
+import 'package:wordly/src/feature/settings/model/settings.dart';
+import 'package:wordly/src/feature/settings/widget/settings_scope.dart';
+import 'package:wordly/src/feature/statistic/model/game_statistic.dart';
+import 'package:wordly/src/localization/localization_context.dart';
+import 'package:wordly/src/ui_kit/layout/constraint_screen.dart';
+import 'package:wordly/src/ui_kit/layout/not_played.dart';
+import 'package:wordly/src/ui_kit/theme_context.dart';
+import 'package:wordly/src/ui_kit/theme_extensions.dart';
 
 class const StatisticPage({required final Locale dictionary, super.key}) extends StatefulWidget {
   @override
@@ -14,7 +19,7 @@ class const StatisticPage({required final Locale dictionary, super.key}) extends
 }
 
 class _StatisticPageState() extends State<StatisticPage> {
-  late final Future<GameStatistic?> _getStatisticsFuture = context.dependencies.statisticsRepository.getStatistic(
+  late Future<GameStatistic?> _getStatisticsFuture = context.dependencies.statisticsRepository.getStatistic(
     widget.dictionary.languageCode,
   );
 
@@ -33,6 +38,27 @@ class _StatisticPageState() extends State<StatisticPage> {
           child: FutureBuilder(
             future: _getStatisticsFuture,
             builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(context.l10n.dataLoadFailed, textAlign: TextAlign.center),
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _getStatisticsFuture = context.dependencies.statisticsRepository.getStatistic(
+                            widget.dictionary.languageCode,
+                          );
+                        }),
+                        child: Text(context.l10n.retry),
+                      ),
+                    ],
+                  ),
+                );
+              }
               if (!snapshot.hasData || snapshot.data == null) {
                 return const HaveNotPlayed();
               }
@@ -104,7 +130,12 @@ class const _StatText({required final num value, required final String title, fi
     mainAxisSize: MainAxisSize.min,
     children: [
       Text(
-        percent ? '${value.toStringAsFixed(1)}%' : value.toString(),
+        percent
+            ? (NumberFormat.percentPattern(Localizations.localeOf(context).toString())
+                    ..minimumFractionDigits = 1
+                    ..maximumFractionDigits = 1)
+                  .format(value / 100)
+            : NumberFormat.decimalPattern(Localizations.localeOf(context).toString()).format(value),
         style: const TextStyle(fontWeight: FontWeight.w500),
       ),
       const SizedBox(height: 8),
@@ -126,7 +157,7 @@ class const AttemptDistribution({
   @override
   Widget build(BuildContext context) {
     final Settings? settings = color == null || textColor == null
-        ? SettingsScope.of(context, listen: true).settingsService.current
+        ? SettingsScope.of(context, listen: true).settings
         : null;
     final Color effectiveColor = color ?? settings!.general.correctColor;
     final Color effectiveTextColor =
@@ -197,10 +228,12 @@ class const _AttemptRow({
                       alignment: Alignment.centerLeft,
                       child: FractionallySizedBox(
                         widthFactor: count / maxCount,
-                        child: Container(
+                        child: SizedBox(
                           key: ValueKey<String>('attempt-$attempt-bar'),
                           height: rowHeight,
-                          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
+                          ),
                         ),
                       ),
                     ),

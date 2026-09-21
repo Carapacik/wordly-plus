@@ -1,10 +1,15 @@
 #!/bin/sh
 set -eu
 
-drift_version='2.34.3'
-worker_sha256='4db0469de8ceabad8d5cd3d920614486ba587e100e39523f36f704a3aec5f26c'
-wasm_sha256='41cf968998241465d8b1dfffb1eb60dd10c35de5022a3647e14174ea3af84143'
+drift_version='2.35.0'
+worker_sha256='df0066e75363a9bed59a14eedbbded421c1f5910f8379812df164716aa2e6eed'
+wasm_sha256='13d3f11d05b39ba0618a7115fb41640a5d48b6300f5d3f325f554b42bd6688a4'
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+locked_drift_version=$(awk '/^  drift:$/ { found=1; next } found && /version:/ { gsub(/"/, "", $2); print $2; exit }' "$project_dir/pubspec.lock")
+if [ "$locked_drift_version" != "$drift_version" ]; then
+  echo "Drift web assets ($drift_version) do not match pubspec.lock ($locked_drift_version). Update the pinned release and checksums." >&2
+  exit 1
+fi
 download_dir=$(mktemp -d)
 trap 'rm -rf "$download_dir"' EXIT HUP INT TERM
 

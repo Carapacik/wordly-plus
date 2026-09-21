@@ -89,7 +89,7 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "Carapacik Space" "\0"
+            VALUE "CompanyName", "CarapacikSpace" "\0"
             VALUE "FileDescription", "Wordly Plus" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "WordlyPlus" "\0"

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class const CountdownTimer({
   required final Duration timeRemaining,
@@ -15,22 +15,20 @@ class const CountdownTimer({
 class _CountdownTimerState() extends State<CountdownTimer> {
   Timer? _timer;
   late int _timeRemaining;
+  late DateTime _deadline;
 
   @override
   void initState() {
     super.initState();
     const oneSecond = Duration(seconds: 1);
-    _timeRemaining = widget.timeRemaining.inSeconds;
+    _deadline = DateTime.now().add(widget.timeRemaining);
+    _timeRemaining = (widget.timeRemaining.inMilliseconds / 1000).ceil().clamp(0, 86400);
     _timer = Timer.periodic(oneSecond, (timer) {
-      if (_timeRemaining == 0) {
-        setState(() {
-          timer.cancel();
-          widget.onEnd?.call();
-        });
-      } else {
-        setState(() {
-          _timeRemaining--;
-        });
+      final int remaining = (_deadline.difference(DateTime.now()).inMilliseconds / 1000).ceil().clamp(0, 86400);
+      setState(() => _timeRemaining = remaining);
+      if (remaining == 0) {
+        timer.cancel();
+        widget.onEnd?.call();
       }
     });
   }

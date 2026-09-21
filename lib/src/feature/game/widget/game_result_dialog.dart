@@ -1,12 +1,15 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:wordly/src/core/common/common.dart';
-import 'package:wordly/src/core/resources/resources.dart';
-import 'package:wordly/src/feature/game/domain/model/game_mode.dart';
-import 'package:wordly/src/feature/game/domain/model/letter_info.dart';
+import 'package:wordly/src/feature/game/model/game_mode.dart';
+import 'package:wordly/src/feature/game/model/letter_info.dart';
 import 'package:wordly/src/feature/game/widget/countdown_timer.dart';
-import 'package:wordly/src/feature/settings/settings.dart';
+import 'package:wordly/src/feature/settings/model/settings.dart';
+import 'package:wordly/src/feature/settings/widget/settings_scope.dart';
+import 'package:wordly/src/localization/localization_context.dart';
+import 'package:wordly/src/ui_kit/colors.dart';
 
 Future<void> showGameResultDialog(
   BuildContext context,
@@ -17,19 +20,33 @@ Future<void> showGameResultDialog(
   required VoidCallback nextLevelPressed,
   String? shareString,
   VoidCallback? onTimerEnd,
-}) => showDialog(
-  context: context,
-  barrierDismissible: mode == GameMode.daily,
-  builder: (context) => DialogContent(
-    secretWord: secretWord,
-    meaning: meaning,
-    isWin: isWin,
-    mode: mode,
-    shareString: shareString,
-    onTimerEnd: onTimerEnd,
-    nextLevelPressed: nextLevelPressed,
-  ),
-);
+  Stream<void>? closeWhen,
+}) async {
+  final NavigatorState navigator = Navigator.of(context, rootNavigator: true);
+  final route = DialogRoute<void>(
+    context: context,
+    barrierDismissible: mode == GameMode.daily,
+    builder: (context) => DialogContent(
+      secretWord: secretWord,
+      meaning: meaning,
+      isWin: isWin,
+      mode: mode,
+      shareString: shareString,
+      onTimerEnd: onTimerEnd,
+      nextLevelPressed: nextLevelPressed,
+    ),
+  );
+  final StreamSubscription<void>? subscription = closeWhen?.listen((_) {
+    if (route.isActive) {
+      navigator.removeRoute(route);
+    }
+  });
+  try {
+    await navigator.push(route);
+  } finally {
+    await subscription?.cancel();
+  }
+}
 
 class const DialogContent({
   required final String secretWord,
@@ -43,7 +60,7 @@ class const DialogContent({
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final Settings settings = SettingsScope.of(context, listen: true).settingsService.current;
+    final Settings settings = SettingsScope.of(context, listen: true).settings;
     final Color backgroundColor = isWin ? LetterStatus.correctSpot.cellColor(context, settings.general) : AppColors.red;
     final Color textColor = isWin
         ? LetterStatus.correctSpot.textColor(context, settings.general) ?? Colors.white
@@ -54,7 +71,7 @@ class const DialogContent({
       backgroundColor: backgroundColor,
       insetAnimationDuration: const Duration(milliseconds: 800),
       insetPadding: EdgeInsets.symmetric(horizontal: padding.toDouble()),
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: SizedBox(
           width: double.infinity,

@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:wordly/src/feature/game/domain/model/letter_info.dart';
-import 'package:wordly/src/feature/settings/settings.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:wordly/src/feature/game/model/letter_info.dart';
+import 'package:wordly/src/feature/settings/model/settings.dart';
+import 'package:wordly/src/feature/settings/widget/settings_scope.dart';
 
 Future<void> showLevelDialog(
   BuildContext context, {
@@ -10,7 +11,7 @@ Future<void> showLevelDialog(
 }) => showDialog<void>(
   context: context,
   builder: (context) {
-    final Settings settings = SettingsScope.of(context, listen: true).settingsService.current;
+    final Settings settings = SettingsScope.of(context, listen: true).settings;
     final LetterStatus status = isWin ? LetterStatus.correctSpot : LetterStatus.notInWord;
     final Color textColor = status.textColor(context, settings.general) ?? Colors.white;
     final double width = MediaQuery.sizeOf(context).width;
@@ -19,7 +20,7 @@ Future<void> showLevelDialog(
       backgroundColor: status.cellColor(context, settings.general),
       insetAnimationDuration: const Duration(milliseconds: 800),
       insetPadding: EdgeInsets.symmetric(horizontal: padding.toDouble()),
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -1,23 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:wordly/src/core/common/common.dart';
-import 'package:wordly/src/core/constant/generated/fonts.gen.dart';
-import 'package:wordly/src/core/constant/localization/localization.dart';
-import 'package:wordly/src/core/resources/resources.dart';
-import 'package:wordly/src/feature/app/widget/media_query_override.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:wordly/src/feature/game/widget/game_page.dart';
-import 'package:wordly/src/feature/settings/settings.dart';
+import 'package:wordly/src/feature/settings/model/general.dart';
+import 'package:wordly/src/feature/settings/widget/settings_builder.dart';
+import 'package:wordly/src/localization/localization.dart';
+import 'package:wordly/src/localization/localization_context.dart';
+import 'package:wordly/src/ui_kit/colors.dart';
+import 'package:wordly/src/ui_kit/generated/fonts.gen.dart';
+import 'package:wordly/src/ui_kit/theme_extensions.dart';
 
-/// Entry point for the application that uses [MaterialApp].
-class const MaterialContext({super.key}) extends StatefulWidget {
-  @override
-  State<MaterialContext> createState() => _MaterialContextState();
-}
-
-class _MaterialContextState() extends State<MaterialContext> {
-  /// This global key is needed for Flutter to work properly
-  /// when Widgets Inspector is enabled.
-  static final GlobalKey<State<StatefulWidget>> _globalKey = GlobalKey(debugLabel: 'MaterialContext');
-
+class const MaterialContext({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsBuilder(
@@ -56,10 +47,7 @@ class _MaterialContextState() extends State<MaterialContext> {
           onGenerateTitle: (context) => context.l10n.appTitle,
           debugShowCheckedModeBanner: false,
           home: const GamePage(),
-          builder: (context, child) => KeyedSubtree(
-            key: _globalKey,
-            child: MediaQueryRootOverride(child: child!),
-          ),
+          builder: (context, child) => MediaQuery.withClampedTextScaling(maxScaleFactor: 2, child: child!),
         );
       },
     );

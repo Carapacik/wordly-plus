@@ -1,75 +1,70 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:wordly/src/localization/localization.dart';
+import 'package:wordly/src/localization/localization_context.dart';
+import 'package:wordly/src/logging/app_logger.dart';
 
-/// {@template initialization_failed_screen}
-/// Screen that is shown when the initialization of the app fails.
-/// {@endtemplate}
 class const InitializationFailedApp({
-  /// The error that caused the initialization to fail.
   required final Object error,
-
-  /// The stack trace of the error that caused the initialization to fail.
   required final StackTrace stackTrace,
-
-  /// The callback that will be called when the retry button is pressed.
-  ///
-  /// If null, the retry button will not be shown.
   final Future<void> Function()? onRetryInitialization,
   super.key,
 }) extends StatefulWidget {
-  /// {@macro initialization_failed_screen}
-  this;
-
   @override
   State<InitializationFailedApp> createState() => _InitializationFailedAppState();
 }
 
 class _InitializationFailedAppState() extends State<InitializationFailedApp> {
-  /// Whether the initialization is in progress.
-  final _inProgress = ValueNotifier<bool>(false);
-
-  @override
-  void dispose() {
-    _inProgress.dispose();
-    super.dispose();
-  }
+  bool _inProgress = false;
 
   Future<void> _retryInitialization() async {
-    _inProgress.value = true;
-    await widget.onRetryInitialization?.call();
-    _inProgress.value = false;
+    if (_inProgress) {
+      return;
+    }
+    setState(() => _inProgress = true);
+    try {
+      await widget.onRetryInitialization?.call();
+    } on Object catch (error, stack) {
+      AppLogger.error('Initialization retry failed', error, stack);
+    } finally {
+      if (mounted) {
+        setState(() => _inProgress = false);
+      }
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final TextTheme typography = theme.textTheme;
-    final ColorScheme colorScheme = theme.colorScheme;
-
-    return MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+  Widget build(BuildContext context) => MaterialApp(
+    localizationsDelegates: Localization.localizationDelegates,
+    supportedLocales: Localization.supportedLocales,
+    locale: Localization.deviceLocale,
+    debugShowCheckedModeBanner: false,
+    onGenerateTitle: (context) => context.l10n.appTitle,
+    home: Builder(
+      builder: (context) => Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Initialization failed', style: typography.headlineMedium),
+                  Text(
+                    context.l10n.initializationFailed,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(context.l10n.initializationFailedDescription, textAlign: TextAlign.center),
+                  const SizedBox(height: 24),
+                  if (_inProgress) const CircularProgressIndicator(),
                   if (widget.onRetryInitialization != null)
-                    IconButton(icon: const Icon(Icons.refresh), onPressed: _retryInitialization),
+                    TextButton(onPressed: _inProgress ? null : _retryInitialization, child: Text(context.l10n.retry)),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text('${widget.error}', style: typography.bodyLarge?.copyWith(color: colorScheme.error)),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text('${widget.stackTrace}', style: typography.bodyLarge),
-              ),
-            ],
+            ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
 }

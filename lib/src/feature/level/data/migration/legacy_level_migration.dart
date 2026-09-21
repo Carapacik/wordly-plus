@@ -3,10 +3,10 @@ import 'dart:ui' show Locale;
 
 import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wordly/src/feature/game/domain/model/game_result.dart';
-import 'package:wordly/src/feature/game/domain/model/letter_info.dart';
+import 'package:wordly/src/feature/game/model/game_result.dart';
+import 'package:wordly/src/feature/game/model/letter_info.dart';
 import 'package:wordly/src/feature/level/data/database/app_database.dart';
-import 'package:wordly/src/feature/level/domain/model/level_result.dart';
+import 'package:wordly/src/feature/level/model/level_result.dart';
 
 abstract interface class LegacyLevelStore() {
   Future<Map<String, Object?>> readAll(Set<String> keys);
@@ -20,6 +20,7 @@ final class const SharedPreferencesLegacyLevelStore(final SharedPreferencesAsync
 
 typedef LegacyMigrationLogger = void Function(String message, {Object? error, StackTrace? stackTrace});
 
+/// Merges legacy history formats without deleting the original preference data.
 final class const LegacyLevelMigration({
   required final AppDatabase _database,
   required final LegacyLevelStore _legacyStore,
@@ -97,7 +98,8 @@ final class const LegacyLevelMigration({
 
     final currentProgress = progress;
     var placeholderCount = 0;
-    await _database.transaction(() async {
+    // Commit the marker with the imported rows so interrupted migrations can safely retry.
+    await _database.durableTransaction(() async {
       for (final _RankedResult ranked in candidates.values) {
         await _upsertMigratedResult(code, ranked.result);
       }

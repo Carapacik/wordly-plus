@@ -897,6 +897,513 @@ class MigrationMarkersCompanion extends UpdateCompanion<MigrationMarkerRow> {
   }
 }
 
+class $DailyGamesTable extends DailyGames
+    with TableInfo<$DailyGamesTable, DailyGame> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DailyGamesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dictionaryCodeMeta = const VerificationMeta(
+    'dictionaryCode',
+  );
+  @override
+  late final GeneratedColumn<String> dictionaryCode = GeneratedColumn<String>(
+    'dictionary_code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateKeyMeta = const VerificationMeta(
+    'dateKey',
+  );
+  @override
+  late final GeneratedColumn<String> dateKey = GeneratedColumn<String>(
+    'date_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _resultJsonMeta = const VerificationMeta(
+    'resultJson',
+  );
+  @override
+  late final GeneratedColumn<String> resultJson = GeneratedColumn<String>(
+    'result_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [dictionaryCode, dateKey, resultJson];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'daily_games';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DailyGame> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('dictionary_code')) {
+      context.handle(
+        _dictionaryCodeMeta,
+        dictionaryCode.isAcceptableOrUnknown(
+          data['dictionary_code']!,
+          _dictionaryCodeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_dictionaryCodeMeta);
+    }
+    if (data.containsKey('date_key')) {
+      context.handle(
+        _dateKeyMeta,
+        dateKey.isAcceptableOrUnknown(data['date_key']!, _dateKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateKeyMeta);
+    }
+    if (data.containsKey('result_json')) {
+      context.handle(
+        _resultJsonMeta,
+        resultJson.isAcceptableOrUnknown(data['result_json']!, _resultJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_resultJsonMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {dictionaryCode, dateKey};
+  @override
+  DailyGame map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DailyGame(
+      dictionaryCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dictionary_code'],
+      )!,
+      dateKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}date_key'],
+      )!,
+      resultJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}result_json'],
+      )!,
+    );
+  }
+
+  @override
+  $DailyGamesTable createAlias(String alias) {
+    return $DailyGamesTable(attachedDatabase, alias);
+  }
+}
+
+class DailyGame extends DataClass implements Insertable<DailyGame> {
+  final String dictionaryCode;
+  final String dateKey;
+  final String resultJson;
+  const DailyGame({
+    required this.dictionaryCode,
+    required this.dateKey,
+    required this.resultJson,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['dictionary_code'] = Variable<String>(dictionaryCode);
+    map['date_key'] = Variable<String>(dateKey);
+    map['result_json'] = Variable<String>(resultJson);
+    return map;
+  }
+
+  DailyGamesCompanion toCompanion(bool nullToAbsent) {
+    return DailyGamesCompanion(
+      dictionaryCode: Value(dictionaryCode),
+      dateKey: Value(dateKey),
+      resultJson: Value(resultJson),
+    );
+  }
+
+  factory DailyGame.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DailyGame(
+      dictionaryCode: serializer.fromJson<String>(json['dictionaryCode']),
+      dateKey: serializer.fromJson<String>(json['dateKey']),
+      resultJson: serializer.fromJson<String>(json['resultJson']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'dictionaryCode': serializer.toJson<String>(dictionaryCode),
+      'dateKey': serializer.toJson<String>(dateKey),
+      'resultJson': serializer.toJson<String>(resultJson),
+    };
+  }
+
+  DailyGame copyWith({
+    String? dictionaryCode,
+    String? dateKey,
+    String? resultJson,
+  }) => DailyGame(
+    dictionaryCode: dictionaryCode ?? this.dictionaryCode,
+    dateKey: dateKey ?? this.dateKey,
+    resultJson: resultJson ?? this.resultJson,
+  );
+  DailyGame copyWithCompanion(DailyGamesCompanion data) {
+    return DailyGame(
+      dictionaryCode: data.dictionaryCode.present
+          ? data.dictionaryCode.value
+          : this.dictionaryCode,
+      dateKey: data.dateKey.present ? data.dateKey.value : this.dateKey,
+      resultJson: data.resultJson.present
+          ? data.resultJson.value
+          : this.resultJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyGame(')
+          ..write('dictionaryCode: $dictionaryCode, ')
+          ..write('dateKey: $dateKey, ')
+          ..write('resultJson: $resultJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(dictionaryCode, dateKey, resultJson);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DailyGame &&
+          other.dictionaryCode == this.dictionaryCode &&
+          other.dateKey == this.dateKey &&
+          other.resultJson == this.resultJson);
+}
+
+class DailyGamesCompanion extends UpdateCompanion<DailyGame> {
+  final Value<String> dictionaryCode;
+  final Value<String> dateKey;
+  final Value<String> resultJson;
+  final Value<int> rowid;
+  const DailyGamesCompanion({
+    this.dictionaryCode = const Value.absent(),
+    this.dateKey = const Value.absent(),
+    this.resultJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DailyGamesCompanion.insert({
+    required String dictionaryCode,
+    required String dateKey,
+    required String resultJson,
+    this.rowid = const Value.absent(),
+  }) : dictionaryCode = Value(dictionaryCode),
+       dateKey = Value(dateKey),
+       resultJson = Value(resultJson);
+  static Insertable<DailyGame> custom({
+    Expression<String>? dictionaryCode,
+    Expression<String>? dateKey,
+    Expression<String>? resultJson,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (dictionaryCode != null) 'dictionary_code': dictionaryCode,
+      if (dateKey != null) 'date_key': dateKey,
+      if (resultJson != null) 'result_json': resultJson,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DailyGamesCompanion copyWith({
+    Value<String>? dictionaryCode,
+    Value<String>? dateKey,
+    Value<String>? resultJson,
+    Value<int>? rowid,
+  }) {
+    return DailyGamesCompanion(
+      dictionaryCode: dictionaryCode ?? this.dictionaryCode,
+      dateKey: dateKey ?? this.dateKey,
+      resultJson: resultJson ?? this.resultJson,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (dictionaryCode.present) {
+      map['dictionary_code'] = Variable<String>(dictionaryCode.value);
+    }
+    if (dateKey.present) {
+      map['date_key'] = Variable<String>(dateKey.value);
+    }
+    if (resultJson.present) {
+      map['result_json'] = Variable<String>(resultJson.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyGamesCompanion(')
+          ..write('dictionaryCode: $dictionaryCode, ')
+          ..write('dateKey: $dateKey, ')
+          ..write('resultJson: $resultJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DailyStatisticsTable extends DailyStatistics
+    with TableInfo<$DailyStatisticsTable, DailyStatistic> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DailyStatisticsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dictionaryCodeMeta = const VerificationMeta(
+    'dictionaryCode',
+  );
+  @override
+  late final GeneratedColumn<String> dictionaryCode = GeneratedColumn<String>(
+    'dictionary_code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statisticJsonMeta = const VerificationMeta(
+    'statisticJson',
+  );
+  @override
+  late final GeneratedColumn<String> statisticJson = GeneratedColumn<String>(
+    'statistic_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [dictionaryCode, statisticJson];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'daily_statistics';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DailyStatistic> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('dictionary_code')) {
+      context.handle(
+        _dictionaryCodeMeta,
+        dictionaryCode.isAcceptableOrUnknown(
+          data['dictionary_code']!,
+          _dictionaryCodeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_dictionaryCodeMeta);
+    }
+    if (data.containsKey('statistic_json')) {
+      context.handle(
+        _statisticJsonMeta,
+        statisticJson.isAcceptableOrUnknown(
+          data['statistic_json']!,
+          _statisticJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_statisticJsonMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {dictionaryCode};
+  @override
+  DailyStatistic map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DailyStatistic(
+      dictionaryCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dictionary_code'],
+      )!,
+      statisticJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}statistic_json'],
+      )!,
+    );
+  }
+
+  @override
+  $DailyStatisticsTable createAlias(String alias) {
+    return $DailyStatisticsTable(attachedDatabase, alias);
+  }
+}
+
+class DailyStatistic extends DataClass implements Insertable<DailyStatistic> {
+  final String dictionaryCode;
+  final String statisticJson;
+  const DailyStatistic({
+    required this.dictionaryCode,
+    required this.statisticJson,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['dictionary_code'] = Variable<String>(dictionaryCode);
+    map['statistic_json'] = Variable<String>(statisticJson);
+    return map;
+  }
+
+  DailyStatisticsCompanion toCompanion(bool nullToAbsent) {
+    return DailyStatisticsCompanion(
+      dictionaryCode: Value(dictionaryCode),
+      statisticJson: Value(statisticJson),
+    );
+  }
+
+  factory DailyStatistic.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DailyStatistic(
+      dictionaryCode: serializer.fromJson<String>(json['dictionaryCode']),
+      statisticJson: serializer.fromJson<String>(json['statisticJson']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'dictionaryCode': serializer.toJson<String>(dictionaryCode),
+      'statisticJson': serializer.toJson<String>(statisticJson),
+    };
+  }
+
+  DailyStatistic copyWith({String? dictionaryCode, String? statisticJson}) =>
+      DailyStatistic(
+        dictionaryCode: dictionaryCode ?? this.dictionaryCode,
+        statisticJson: statisticJson ?? this.statisticJson,
+      );
+  DailyStatistic copyWithCompanion(DailyStatisticsCompanion data) {
+    return DailyStatistic(
+      dictionaryCode: data.dictionaryCode.present
+          ? data.dictionaryCode.value
+          : this.dictionaryCode,
+      statisticJson: data.statisticJson.present
+          ? data.statisticJson.value
+          : this.statisticJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyStatistic(')
+          ..write('dictionaryCode: $dictionaryCode, ')
+          ..write('statisticJson: $statisticJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(dictionaryCode, statisticJson);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DailyStatistic &&
+          other.dictionaryCode == this.dictionaryCode &&
+          other.statisticJson == this.statisticJson);
+}
+
+class DailyStatisticsCompanion extends UpdateCompanion<DailyStatistic> {
+  final Value<String> dictionaryCode;
+  final Value<String> statisticJson;
+  final Value<int> rowid;
+  const DailyStatisticsCompanion({
+    this.dictionaryCode = const Value.absent(),
+    this.statisticJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DailyStatisticsCompanion.insert({
+    required String dictionaryCode,
+    required String statisticJson,
+    this.rowid = const Value.absent(),
+  }) : dictionaryCode = Value(dictionaryCode),
+       statisticJson = Value(statisticJson);
+  static Insertable<DailyStatistic> custom({
+    Expression<String>? dictionaryCode,
+    Expression<String>? statisticJson,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (dictionaryCode != null) 'dictionary_code': dictionaryCode,
+      if (statisticJson != null) 'statistic_json': statisticJson,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DailyStatisticsCompanion copyWith({
+    Value<String>? dictionaryCode,
+    Value<String>? statisticJson,
+    Value<int>? rowid,
+  }) {
+    return DailyStatisticsCompanion(
+      dictionaryCode: dictionaryCode ?? this.dictionaryCode,
+      statisticJson: statisticJson ?? this.statisticJson,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (dictionaryCode.present) {
+      map['dictionary_code'] = Variable<String>(dictionaryCode.value);
+    }
+    if (statisticJson.present) {
+      map['statistic_json'] = Variable<String>(statisticJson.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyStatisticsCompanion(')
+          ..write('dictionaryCode: $dictionaryCode, ')
+          ..write('statisticJson: $statisticJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -904,6 +1411,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $LevelProgressEntriesTable levelProgressEntries =
       $LevelProgressEntriesTable(this);
   late final $MigrationMarkersTable migrationMarkers = $MigrationMarkersTable(
+    this,
+  );
+  late final $DailyGamesTable dailyGames = $DailyGamesTable(this);
+  late final $DailyStatisticsTable dailyStatistics = $DailyStatisticsTable(
     this,
   );
   @override
@@ -914,6 +1425,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     levelResults,
     levelProgressEntries,
     migrationMarkers,
+    dailyGames,
+    dailyStatistics,
   ];
 }
 
@@ -1080,7 +1593,16 @@ class $$LevelResultsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$LevelResultsTable, LevelResultRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $LevelResultsTable,
+                    LevelResultRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -1279,7 +1801,18 @@ class $$LevelProgressEntriesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$LevelProgressEntriesTable, LevelProgressRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $LevelProgressEntriesTable,
+                    LevelProgressRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -1434,7 +1967,18 @@ class $$MigrationMarkersTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$MigrationMarkersTable, MigrationMarkerRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $MigrationMarkersTable,
+                    MigrationMarkerRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -1462,6 +2006,338 @@ typedef $$MigrationMarkersTableProcessedTableManager =
       MigrationMarkerRow,
       PrefetchHooks Function()
     >;
+typedef $$DailyGamesTableCreateCompanionBuilder = DailyGamesCompanion Function({
+  required String dictionaryCode,
+  required String dateKey,
+  required String resultJson,
+  Value<int> rowid,
+});
+typedef $$DailyGamesTableUpdateCompanionBuilder = DailyGamesCompanion Function({
+  Value<String> dictionaryCode,
+  Value<String> dateKey,
+  Value<String> resultJson,
+  Value<int> rowid,
+});
+
+class $$DailyGamesTableFilterComposer
+    extends Composer<_$AppDatabase, $DailyGamesTable> {
+  $$DailyGamesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get dictionaryCode => $composableBuilder(
+    column: $table.dictionaryCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dateKey => $composableBuilder(
+    column: $table.dateKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get resultJson => $composableBuilder(
+    column: $table.resultJson,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DailyGamesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DailyGamesTable> {
+  $$DailyGamesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get dictionaryCode => $composableBuilder(
+    column: $table.dictionaryCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dateKey => $composableBuilder(
+    column: $table.dateKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get resultJson => $composableBuilder(
+    column: $table.resultJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DailyGamesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DailyGamesTable> {
+  $$DailyGamesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get dictionaryCode => $composableBuilder(
+    column: $table.dictionaryCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dateKey =>
+      $composableBuilder(column: $table.dateKey, builder: (column) => column);
+
+  GeneratedColumn<String> get resultJson => $composableBuilder(
+    column: $table.resultJson,
+    builder: (column) => column,
+  );
+}
+
+class $$DailyGamesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DailyGamesTable,
+          DailyGame,
+          $$DailyGamesTableFilterComposer,
+          $$DailyGamesTableOrderingComposer,
+          $$DailyGamesTableAnnotationComposer,
+          $$DailyGamesTableCreateCompanionBuilder,
+          $$DailyGamesTableUpdateCompanionBuilder,
+          (
+            DailyGame,
+            BaseReferences<_$AppDatabase, $DailyGamesTable, DailyGame>,
+          ),
+          DailyGame,
+          PrefetchHooks Function()
+        > {
+  $$DailyGamesTableTableManager(_$AppDatabase db, $DailyGamesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DailyGamesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DailyGamesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DailyGamesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> dictionaryCode = const Value.absent(),
+                Value<String> dateKey = const Value.absent(),
+                Value<String> resultJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DailyGamesCompanion(
+                dictionaryCode: dictionaryCode,
+                dateKey: dateKey,
+                resultJson: resultJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String dictionaryCode,
+                required String dateKey,
+                required String resultJson,
+                Value<int> rowid = const Value.absent(),
+              }) => DailyGamesCompanion.insert(
+                dictionaryCode: dictionaryCode,
+                dateKey: dateKey,
+                resultJson: resultJson,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DailyGamesTable, DailyGame>(table),
+                  BaseReferences<_$AppDatabase, $DailyGamesTable, DailyGame>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DailyGamesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DailyGamesTable,
+      DailyGame,
+      $$DailyGamesTableFilterComposer,
+      $$DailyGamesTableOrderingComposer,
+      $$DailyGamesTableAnnotationComposer,
+      $$DailyGamesTableCreateCompanionBuilder,
+      $$DailyGamesTableUpdateCompanionBuilder,
+      (DailyGame, BaseReferences<_$AppDatabase, $DailyGamesTable, DailyGame>),
+      DailyGame,
+      PrefetchHooks Function()
+    >;
+typedef $$DailyStatisticsTableCreateCompanionBuilder =
+    DailyStatisticsCompanion Function({
+      required String dictionaryCode,
+      required String statisticJson,
+      Value<int> rowid,
+    });
+typedef $$DailyStatisticsTableUpdateCompanionBuilder =
+    DailyStatisticsCompanion Function({
+      Value<String> dictionaryCode,
+      Value<String> statisticJson,
+      Value<int> rowid,
+    });
+
+class $$DailyStatisticsTableFilterComposer
+    extends Composer<_$AppDatabase, $DailyStatisticsTable> {
+  $$DailyStatisticsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get dictionaryCode => $composableBuilder(
+    column: $table.dictionaryCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statisticJson => $composableBuilder(
+    column: $table.statisticJson,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DailyStatisticsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DailyStatisticsTable> {
+  $$DailyStatisticsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get dictionaryCode => $composableBuilder(
+    column: $table.dictionaryCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get statisticJson => $composableBuilder(
+    column: $table.statisticJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DailyStatisticsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DailyStatisticsTable> {
+  $$DailyStatisticsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get dictionaryCode => $composableBuilder(
+    column: $table.dictionaryCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get statisticJson => $composableBuilder(
+    column: $table.statisticJson,
+    builder: (column) => column,
+  );
+}
+
+class $$DailyStatisticsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DailyStatisticsTable,
+          DailyStatistic,
+          $$DailyStatisticsTableFilterComposer,
+          $$DailyStatisticsTableOrderingComposer,
+          $$DailyStatisticsTableAnnotationComposer,
+          $$DailyStatisticsTableCreateCompanionBuilder,
+          $$DailyStatisticsTableUpdateCompanionBuilder,
+          (
+            DailyStatistic,
+            BaseReferences<
+              _$AppDatabase,
+              $DailyStatisticsTable,
+              DailyStatistic
+            >,
+          ),
+          DailyStatistic,
+          PrefetchHooks Function()
+        > {
+  $$DailyStatisticsTableTableManager(
+    _$AppDatabase db,
+    $DailyStatisticsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DailyStatisticsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DailyStatisticsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DailyStatisticsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> dictionaryCode = const Value.absent(),
+                Value<String> statisticJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DailyStatisticsCompanion(
+                dictionaryCode: dictionaryCode,
+                statisticJson: statisticJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String dictionaryCode,
+                required String statisticJson,
+                Value<int> rowid = const Value.absent(),
+              }) => DailyStatisticsCompanion.insert(
+                dictionaryCode: dictionaryCode,
+                statisticJson: statisticJson,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DailyStatisticsTable, DailyStatistic>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $DailyStatisticsTable,
+                    DailyStatistic
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DailyStatisticsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DailyStatisticsTable,
+      DailyStatistic,
+      $$DailyStatisticsTableFilterComposer,
+      $$DailyStatisticsTableOrderingComposer,
+      $$DailyStatisticsTableAnnotationComposer,
+      $$DailyStatisticsTableCreateCompanionBuilder,
+      $$DailyStatisticsTableUpdateCompanionBuilder,
+      (
+        DailyStatistic,
+        BaseReferences<_$AppDatabase, $DailyStatisticsTable, DailyStatistic>,
+      ),
+      DailyStatistic,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1472,4 +2348,8 @@ class $AppDatabaseManager {
       $$LevelProgressEntriesTableTableManager(_db, _db.levelProgressEntries);
   $$MigrationMarkersTableTableManager get migrationMarkers =>
       $$MigrationMarkersTableTableManager(_db, _db.migrationMarkers);
+  $$DailyGamesTableTableManager get dailyGames =>
+      $$DailyGamesTableTableManager(_db, _db.dailyGames);
+  $$DailyStatisticsTableTableManager get dailyStatistics =>
+      $$DailyStatisticsTableTableManager(_db, _db.dailyStatistics);
 }

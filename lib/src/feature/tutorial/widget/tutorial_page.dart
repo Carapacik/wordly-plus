@@ -1,16 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:wordly/src/core/common/common.dart';
-import 'package:wordly/src/core/resources/resources.dart';
-import 'package:wordly/src/feature/game/domain/model/letter_info.dart';
-import 'package:wordly/src/feature/settings/settings.dart';
-import 'package:wordly/src/feature/shared/constraint_screen.dart';
-import 'package:wordly/src/feature/shared/letter_tile.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:wordly/src/feature/game/model/letter_info.dart';
+import 'package:wordly/src/feature/settings/model/settings.dart';
+import 'package:wordly/src/feature/settings/widget/settings_scope.dart';
+import 'package:wordly/src/localization/localization_context.dart';
+import 'package:wordly/src/ui_kit/colors.dart';
+import 'package:wordly/src/ui_kit/game/letter_tile.dart';
+import 'package:wordly/src/ui_kit/layout/constraint_screen.dart';
+import 'package:wordly/src/ui_kit/theme_context.dart';
+import 'package:wordly/src/ui_kit/theme_extensions.dart';
 
 class const TutorialPage({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final SettingsContainer settingsScope = SettingsScope.of(context, listen: true);
-    final Settings settings = settingsScope.settingsService.current;
+    final SettingsScopeState settingsScope = SettingsScope.of(context, listen: true);
+    final Settings settings = settingsScope.settings;
     final Locale locale = settings.general.locale;
     final List<LetterInfo> wordWithCorrectSpot = _wordWithCorrectSpot(locale);
     final List<LetterInfo> wordWithWrongSpot = _wordWithWrongSpot(locale);

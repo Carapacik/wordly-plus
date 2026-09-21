@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wordly/src/core/constant/generated/fonts.gen.dart';
-import 'package:wordly/src/feature/game/bloc/game_bloc.dart';
-import 'package:wordly/src/feature/game/domain/model/keyboard.dart';
-import 'package:wordly/src/feature/game/domain/model/letter_info.dart';
-import 'package:wordly/src/feature/settings/settings.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:wordly/src/feature/game/logic/game_bloc.dart';
+import 'package:wordly/src/feature/game/model/keyboard.dart';
+import 'package:wordly/src/feature/game/model/letter_info.dart';
+import 'package:wordly/src/feature/settings/model/general.dart';
+import 'package:wordly/src/feature/settings/widget/settings_builder.dart';
+import 'package:wordly/src/localization/localization_context.dart';
+import 'package:wordly/src/ui_kit/generated/fonts.gen.dart';
 
 class const KeyboardByLanguage({super.key}) extends StatelessWidget {
   @override
@@ -12,13 +14,18 @@ class const KeyboardByLanguage({super.key}) extends StatelessWidget {
     return SettingsBuilder(
       builder: (context, settings) {
         final Locale dictionary = settings.dictionary;
-        return SizedBox(
-          height: 200,
-          child: switch (dictionary.languageCode) {
-            'en' => KeyboardEn(generalSettings: settings.general, dictionary: dictionary),
-            'ru' => KeyboardRu(generalSettings: settings.general, dictionary: dictionary),
-            _ => const SizedBox.shrink(),
-          },
+        return LayoutBuilder(
+          builder: (context, constraints) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(size: Size(constraints.maxWidth, MediaQuery.sizeOf(context).height)),
+            child: SizedBox(
+              height: 200,
+              child: switch (dictionary.languageCode) {
+                'en' => KeyboardEn(generalSettings: settings.general, dictionary: dictionary),
+                'ru' => KeyboardRu(generalSettings: settings.general, dictionary: dictionary),
+                _ => const SizedBox.shrink(),
+              },
+            ),
+          ),
         );
       },
     );
@@ -162,7 +169,11 @@ class const EnterKey({required final GeneralSettings generalSettings, required f
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
               child: FittedBox(
-                child: Icon(Icons.send, color: LetterStatus.unknown.textColor(context, generalSettings)),
+                child: Icon(
+                  Icons.send,
+                  semanticLabel: context.l10n.submitGuess,
+                  color: LetterStatus.unknown.textColor(context, generalSettings),
+                ),
               ),
             ),
           ),
@@ -184,13 +195,20 @@ class const DeleteKey({required final GeneralSettings generalSettings, required 
         child: Material(
           color: LetterStatus.unknown.cellColor(context, generalSettings),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-          child: InkWell(
-            onTap: () => context.read<GameBloc>().add(const GameEvent.deletePressed()),
-            onLongPress: () => context.read<GameBloc>().add(const GameEvent.deleteLongPressed()),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-              child: FittedBox(
-                child: Icon(Icons.backspace_outlined, color: LetterStatus.unknown.textColor(context, generalSettings)),
+          child: Semantics(
+            onLongPressHint: context.l10n.deleteGuess,
+            child: InkWell(
+              onTap: () => context.read<GameBloc>().add(const GameEvent.deletePressed()),
+              onLongPress: () => context.read<GameBloc>().add(const GameEvent.deleteLongPressed()),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                child: FittedBox(
+                  child: Icon(
+                    Icons.backspace_outlined,
+                    semanticLabel: context.l10n.deleteLetter,
+                    color: LetterStatus.unknown.textColor(context, generalSettings),
+                  ),
+                ),
               ),
             ),
           ),

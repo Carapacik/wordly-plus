@@ -1,8 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/link.dart';
-import 'package:wordly/src/core/common/common.dart';
-import 'package:wordly/src/feature/app/model/application_config.dart';
-import 'package:wordly/src/feature/shared/constraint_screen.dart';
+import 'package:wordly/src/feature/app/model/app_links.dart';
+import 'package:wordly/src/feature/app/widget/dependencies_context.dart';
+import 'package:wordly/src/localization/localization_context.dart';
+import 'package:wordly/src/ui_kit/layout/constraint_screen.dart';
+import 'package:wordly/src/ui_kit/theme_context.dart';
+import 'package:wordly/src/ui_kit/theme_extensions.dart';
 
 class const AboutPage({super.key}) extends StatelessWidget {
   @override
@@ -21,11 +24,11 @@ class const AboutPage({super.key}) extends StatelessWidget {
             children: [
               const Spacer(),
               const Text('Carapacik Space', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
-              _CreditNameText(text: 'Roman Laptev - Carapacik', url: const ApplicationConfig().mySite),
+              const _CreditNameText(text: 'Roman Laptev - Carapacik', url: AppLinks.mySite),
               const Spacer(flex: 10),
               Link(
                 uri: Uri.parse(
-                  'mailto:${const ApplicationConfig().email}?'
+                  'mailto:${AppLinks.email}?'
                   '${context.l10n.sendMessage}',
                 ),
                 builder: (context, followLink) => MouseRegion(
@@ -37,10 +40,10 @@ class const AboutPage({super.key}) extends StatelessWidget {
                       text: TextSpan(
                         children: [
                           TextSpan(text: context.l10n.contact),
-                          WidgetSpan(
+                          const WidgetSpan(
                             child: SelectableText(
-                              const ApplicationConfig().email,
-                              style: const TextStyle(
+                              AppLinks.email,
+                              style: TextStyle(
                                 decoration: TextDecoration.underline,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 24,

@@ -33,6 +33,10 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Downloaded by tool/update_drift_web_assets.sh in CI.
+/web/drift_worker.js
+/web/sqlite3.wasm
+
 # Symbolication related
 app.*.symbols
 

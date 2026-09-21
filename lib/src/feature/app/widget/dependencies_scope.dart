@@ -1,16 +1,15 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:wordly/src/core/common/common.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:wordly/src/feature/app/model/dependencies_container.dart';
-import 'package:wordly/src/feature/settings/settings.dart';
+import 'package:wordly/src/feature/settings/widget/settings_scope.dart';
+import 'package:wordly/src/utils/inherited_extension.dart';
 
 class const DependenciesScope({
   required final DependenciesContainer dependencies,
   required final Widget child,
   super.key,
 }) extends StatelessWidget {
-  /// Get the dependencies from the [context].
   static DependenciesContainer of(BuildContext context) =>
       context.inhOf<_DependenciesInherited>(listen: false).dependencies;
 
@@ -18,18 +17,17 @@ class const DependenciesScope({
   Widget build(BuildContext context) {
     return _DependenciesInherited(
       dependencies: dependencies,
-      child: SettingsScope(settingsContainer: dependencies.settingsContainer, child: child),
+      child: SettingsScope(
+        repository: dependencies.settingsRepository,
+        initialSettings: dependencies.initialSettings,
+        child: child,
+      ),
     );
   }
 }
 
-/// A scope that provides composed [DependenciesContainer].
-class const _DependenciesInherited({
-  required super.child,
-
-  /// Container with dependencies.
-  required final DependenciesContainer dependencies,
-}) extends InheritedWidget {
+class const _DependenciesInherited({required super.child, required final DependenciesContainer dependencies})
+    extends InheritedWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
